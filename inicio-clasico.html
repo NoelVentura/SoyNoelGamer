@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PÁGINA DE INICIO - TABLAS DE MULTIPLICAR NOELITO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            animation: fadeIn 1s ease-in;
+            background-image: url('./public/imagenes/paginadeinicio.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        header {
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .welcome-container {
+            background: linear-gradient(145deg, rgba(10, 25, 74, 0.92) 0%, rgba(3, 37, 65, 0.94) 100%);
+            animation: bounceIn 1s ease-in-out, glow 2s ease-in-out infinite alternate, float 3s ease-in-out infinite;
+            box-shadow: 
+                0 0 20px rgba(255, 255, 255, 0.8),
+                0 0 40px rgba(255, 255, 255, 0.6),
+                0 0 60px rgba(255, 255, 255, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+        }
+        
+        @keyframes glow {
+            from {
+                box-shadow: 
+                    0 0 20px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    0 0 60px rgba(255, 255, 255, 0.4),
+                    inset 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+            to {
+                box-shadow: 
+                    0 0 30px rgba(255, 255, 255, 1),
+                    0 0 60px rgba(255, 255, 255, 0.8),
+                    0 0 90px rgba(255, 255, 255, 0.6),
+                    inset 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotateX(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotateX(2deg);
+            }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .button {
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="w-full py-6 px-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-white">🎓 ¡Bienvenido a las Tablas de Multiplicar!</h1>
+            <nav class="flex gap-4 items-center">
+                <a href="./juegos.html?nombre=Noel" class="px-4 py-2 bg-yellow-400 text-purple-900 font-bold rounded-lg hover:bg-yellow-300 transition-all duration-300 shadow-md button">Regreso a la Pagina Principal</a>
+                <a href="tablas-multiplicar.html" target="_blank" class="text-white hover:text-yellow-300 transition-colors font-semibold">Multiplicar</a>
+                <a href="dividir.html" target="_blank" class="text-white hover:text-yellow-300 transition-colors font-semibold">Dividir</a>
+                <a href="sumar.html" target="_blank" class="text-white hover:text-yellow-300 transition-colors font-semibold">Sumar</a>
+                <a href="restar.html" target="_blank" class="text-white hover:text-yellow-300 transition-colors font-semibold">Restar</a>
+                <a href="juego.html" target="_blank" class="text-white hover:text-yellow-300 transition-colors font-semibold">Juego</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col items-end justify-center text-center px-4" style="padding-left: 50%; padding-right: 10%;">
+        <div class="welcome-container p-12 rounded-2xl shadow-lg w-[520px] h-[420px] text-white">
+            <div class="flex flex-col items-center justify-center h-full">
+                <h2 class="text-4xl font-bold mb-8 text-center">¡Bienvenido!</h2>
+                <p class="text-xl mb-8 text-center">Ingresa tu nombre para comenzar</p>
+                
+                <div class="w-full max-w-md">
+                    <input 
+                        type="text" 
+                        id="nombreAlumno" 
+                        placeholder="Escribe tu nombre aquí..." 
+                        class="w-full px-6 py-4 text-lg text-gray-800 rounded-xl border-2 border-white focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-50 transition-all duration-300 placeholder-gray-500"
+                    >
+                    <button 
+                        onclick="iniciarJuego()" 
+                        class="w-full mt-6 px-8 py-4 bg-yellow-400 text-purple-800 text-xl font-bold rounded-xl hover:bg-yellow-500 hover:text-purple-900 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    >
+                        ¡Comenzar a Aprender!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Función para iniciar el juego
+        function iniciarJuego() {
+            const nombreAlumno = document.getElementById('nombreAlumno').value.trim();
+            
+            if (nombreAlumno === '') {
+                alert('Por favor, ingresa tu nombre para comenzar');
+                return;
+            }
+            
+            // Guardar el nombre en localStorage para usarlo en todas las páginas
+            localStorage.setItem('nombreAlumno', nombreAlumno);
+            
+            // Navegar a tablas-multiplicar.html con el nombre como parámetro
+            window.location.href = `tablas-multiplicar.html?nombre=${encodeURIComponent(nombreAlumno)}`;
+        }
+
+        // Función para obtener el nombre desde localStorage y actualizar los enlaces
+        function actualizarEnlacesConNombre() {
+            const nombreAlumno = localStorage.getItem('nombreAlumno');
+            if (nombreAlumno) {
+                const enlaces = document.querySelectorAll('nav a');
+                enlaces.forEach(enlace => {
+                    const href = enlace.getAttribute('href');
+                    if (href && !href.includes('nombre=')) {
+                        enlace.setAttribute('href', `${href}?nombre=${encodeURIComponent(nombreAlumno)}`);
+                    }
+                });
+            }
+        }
+
+        // Función para navegar a las operaciones
+        function navigateToOperation(operation) {
+            switch(operation) {
+                case 'multiplicar':
+                    window.location.href = 'tablas-multiplicar.html';
+                    break;
+                case 'dividir':
+                    window.location.href = 'dividir.html';
+                    break;
+                case 'sumar':
+                    window.location.href = 'sumar.html';
+                    break;
+                case 'restar':
+                    window.location.href = 'restar.html';
+                    break;
+                default:
+                    console.log('Operación no reconocida');
+            }
+        }
+
+        // Página lista
+        document.addEventListener('DOMContentLoaded', function() {
+            // Actualizar enlaces con el nombre si existe en localStorage
+            actualizarEnlacesConNombre();
+            
+            // Permitir presionar Enter para iniciar
+            document.getElementById('nombreAlumno').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    iniciarJuego();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

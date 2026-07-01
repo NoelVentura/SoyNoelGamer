@@ -364,31 +364,31 @@
 <body>
     <header class="navbar" id="navbar">
         <div class="container navbar-inner">
-            <a href="paginagamer.html" class="logo">NOELITO GAMER</a>
+            <a href="index.html" class="logo">NOELITO GAMER</a>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="paginagamer.html#caracteristicas">Características</a></li>
-                    <li><a href="paginagamer.html#features">Modos</a></li>
+                    <li><a href="index.html#caracteristicas">Características</a></li>
+                    <li><a href="index.html#features">Modos</a></li>
                     <li><a href="juegos.html" class="active">Juegos</a></li>
-                    <li><a href="paginagamer.html#precios">Planes</a></li>
-                    <li><a href="paginagamer.html#faq">FAQ</a></li>
+                    <li><a href="index.html#precios">Planes</a></li>
+                    <li><a href="index.html#faq">FAQ</a></li>
                 </ul>
             </nav>
             <div class="nav-actions">
-                <a href="index.html" class="btn btn-ghost">Versión clásica</a>
-                <a href="paginagamer.html#hero" class="btn btn-primary">Jugar ahora</a>
+                <a href="inicio-clasico.html" class="btn btn-ghost">Versión clásica</a>
+                <a href="index.html#hero" class="btn btn-primary">Jugar ahora</a>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Menú">☰</button>
         </div>
     </header>
     <div class="mobile-menu" id="mobileMenu">
-        <a href="paginagamer.html#caracteristicas">Características</a>
-        <a href="paginagamer.html#features">Modos</a>
+        <a href="index.html#caracteristicas">Características</a>
+        <a href="index.html#features">Modos</a>
         <a href="juegos.html" class="active">Juegos</a>
-        <a href="paginagamer.html#precios">Planes</a>
-        <a href="paginagamer.html#faq">FAQ</a>
-        <a href="paginagamer.html#hero" class="btn btn-primary" style="margin-top: 1rem; display: block; text-align: center;">Jugar ahora</a>
-        <a href="index.html">Versión clásica</a>
+        <a href="index.html#precios">Planes</a>
+        <a href="index.html#faq">FAQ</a>
+        <a href="index.html#hero" class="btn btn-primary" style="margin-top: 1rem; display: block; text-align: center;">Jugar ahora</a>
+        <a href="inicio-clasico.html">Versión clásica</a>
     </div>
 
     <div class="page-hero">
@@ -513,8 +513,8 @@
 
     <footer>
         <div class="container">
-            <a href="paginagamer.html" class="logo">NOELITO GAMER</a>
-            <p><a href="paginagamer.html" style="color: var(--neon-blue);">← Volver al inicio</a></p>
+            <a href="index.html" class="logo">NOELITO GAMER</a>
+            <p><a href="index.html" style="color: var(--neon-blue);">← Volver al inicio</a></p>
             <p>© 2026 Noelito Gamer</p>
         </div>
     </footer>
@@ -525,7 +525,7 @@
             if (!nombreAlumno) return;
             document.querySelectorAll('a[href$=".html"]').forEach(function (enlace) {
                 var href = enlace.getAttribute('href');
-                if (href && !href.includes('nombre=') && !href.includes('index.html') && !href.includes('paginagamer.html')) {
+                if (href && !href.includes('nombre=') && !href.includes('index.html') && !href.includes('inicio-clasico.html')) {
                     enlace.setAttribute('href', href + '?nombre=' + encodeURIComponent(nombreAlumno));
                 }
             });
