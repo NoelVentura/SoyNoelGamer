@@ -1,0 +1,7 @@
+.git
+.gitattributes
+Tablas de Multiplicar/node_modules
+Tablas de Multiplicar/.astro
+Tablas de Multiplicar/dist
+eliminar-carpeta-ev2.bat
+**/*.bat
