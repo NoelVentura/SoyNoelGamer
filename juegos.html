@@ -416,8 +416,7 @@
 
             <div class="product-panel active" id="panel-action" role="tabpanel">
                 <div class="product-showcase product-showcase--reno">
-                    <video class="product-showcase-bg" autoplay muted loop playsinline controls>
-                        <source src="https://media.githubusercontent.com/media/NoelVentura/SoyNoelGamer/master/public/video/renocazador.mp4" type="video/mp4">
+                    <video class="product-showcase-bg" muted loop playsinline controls preload="none" data-src="https://media.githubusercontent.com/media/NoelVentura/SoyNoelGamer/master/public/video/renocazador.mp4">
                     </video>
                     <div class="product-showcase-content">
                         <h3>Reno Cazador</h3>
@@ -544,6 +543,37 @@
             if (panel) panel.classList.add('active');
         }
 
+        function cargarVideoLazy(video) {
+            var src = video.getAttribute('data-src');
+            if (!src || video.dataset.loaded) return;
+            var source = document.createElement('source');
+            source.src = src;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            video.dataset.loaded = 'true';
+            video.load();
+        }
+
+        function initVideosLazy() {
+            var videos = document.querySelectorAll('video[data-src]');
+            videos.forEach(function (video) {
+                video.addEventListener('play', function () { cargarVideoLazy(video); });
+            });
+            if (!('IntersectionObserver' in window)) {
+                videos.forEach(cargarVideoLazy);
+                return;
+            }
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        cargarVideoLazy(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '200px' });
+            videos.forEach(function (video) { observer.observe(video); });
+        }
+
         function ajustarContenedorVideo() {
             document.querySelectorAll('.product-showcase--reno .product-showcase-bg').forEach(function (video) {
                 function aplicarTamaño() {
@@ -557,23 +587,19 @@
                 if (video.readyState >= 1) aplicarTamaño();
                 video.addEventListener('loadedmetadata', aplicarTamaño);
                 video.addEventListener('loadeddata', function () {
+                    if (!video.closest('.product-panel.active')) return;
                     var playPromise = video.play();
                     if (playPromise && playPromise.catch) {
                         playPromise.catch(function () {});
                     }
                 });
                 window.addEventListener('resize', aplicarTamaño);
-                if (video.paused) {
-                    var playPromise = video.play();
-                    if (playPromise && playPromise.catch) {
-                        playPromise.catch(function () {});
-                    }
-                }
             });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             actualizarEnlacesConNombre();
+            initVideosLazy();
             ajustarContenedorVideo();
 
             document.querySelectorAll('.product-tab').forEach(function (tab) {
