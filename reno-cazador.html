@@ -4575,15 +4575,35 @@
     scene.add(tallGrassClusters);
   }
 
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  function getViewportWidth() {
+    return window.visualViewport ? Math.round(window.visualViewport.width) : window.innerWidth;
+  }
+
+  function getViewportHeight() {
+    return window.visualViewport ? Math.round(window.visualViewport.height) : window.innerHeight;
+  }
+
+  function getPreferredPixelRatio() {
+    // En pantallas tactiles reducimos el costo del render para mejorar nitidez estable y FPS.
+    return isTouchDevice
+      ? Math.min(window.devicePixelRatio || 1, 1.5)
+      : Math.min(window.devicePixelRatio || 1, 2.5);
+  }
+
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0b1330, 0.009);
 
-  const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 1200);
+  const camera = new THREE.PerspectiveCamera(68, getViewportWidth() / getViewportHeight(), 0.1, 1200);
   camera.position.set(0, 1.6, 15);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+  const renderer = new THREE.WebGLRenderer({
+    antialias: !isTouchDevice,
+    powerPreference: isTouchDevice ? 'default' : 'high-performance'
+  });
+  renderer.setSize(getViewportWidth(), getViewportHeight());
+  renderer.setPixelRatio(getPreferredPixelRatio());
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputEncoding = THREE.sRGBEncoding;
@@ -4593,14 +4613,18 @@
   maxAnisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
   container.appendChild(renderer.domElement);
 
+  if (isTouchDevice) {
+    renderer.shadowMap.autoUpdate = true;
+  }
+
   window.addEventListener('resize', function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = getViewportWidth() / getViewportHeight();
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+    renderer.setSize(getViewportWidth(), getViewportHeight());
+    renderer.setPixelRatio(getPreferredPixelRatio());
     if (!pointerLocked) {
-      cursorTargetX = window.innerWidth / 2;
-      cursorTargetY = window.innerHeight / 2;
+      cursorTargetX = getViewportWidth() / 2;
+      cursorTargetY = getViewportHeight() / 2;
       cursorCurrentX = cursorTargetX;
       cursorCurrentY = cursorTargetY;
       if (cloudCursor) {
@@ -4616,7 +4640,7 @@
   const moonLight = new THREE.DirectionalLight(0xcfe0ff, 1.1);
   moonLight.position.set(-15, 25, -10);
   moonLight.castShadow = true;
-  moonLight.shadow.mapSize.set(2048, 2048);
+  moonLight.shadow.mapSize.set(isTouchDevice ? 1024 : 2048, isTouchDevice ? 1024 : 2048);
   moonLight.shadow.camera.near = 1;
   moonLight.shadow.camera.far = 150;
   moonLight.shadow.camera.left = -60;
@@ -6418,7 +6442,6 @@
   let yaw = 0, pitch = 0;
   const lookSensitivity = 0.0022;
   let pointerLocked = false;
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const mobileMove = { x: 0, y: 0 };
   let mobileLookTouchId = null;
   let mobileLookLastX = 0;
