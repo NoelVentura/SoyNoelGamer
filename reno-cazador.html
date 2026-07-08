@@ -1107,13 +1107,17 @@
   function gameOver(reason) {
     gameRunning = false;
     gamePaused = false;
-    if (pauseScreen) pauseScreen.classList.add('hidden');
+    if (pauseScreen) {
+      pauseScreen.classList.add('hidden');
+      pauseScreen.style.display = 'none';
+    }
     if (pauseBtn) pauseBtn.classList.add('hidden');
     document.body.style.cursor = '';
     if (crosshair) crosshair.style.display = '';
     if (endTitle) endTitle.textContent = reason;
     finalScoreEl.textContent = score;
     endScreen.classList.remove('hidden');
+    endScreen.style.display = 'flex';
     if (minimapPanel) minimapPanel.classList.add('hidden');
     if (fullscreenMap) fullscreenMap.classList.add('hidden');
     fullscreenMapVisible = false;
@@ -8425,7 +8429,10 @@
     setMobileControlsVisible(false);
     if (fullscreenMapVisible) toggleFullscreenMap();
     if (document.pointerLockElement) document.exitPointerLock();
-    if (pauseScreen) pauseScreen.classList.remove('hidden');
+    if (pauseScreen) {
+      pauseScreen.classList.remove('hidden');
+      pauseScreen.style.display = 'flex';
+    }
     if (pauseBtn) pauseBtn.textContent = '▶ Continuar';
     document.body.style.cursor = 'default';
     if (crosshair) crosshair.style.display = 'none';
@@ -8434,7 +8441,10 @@
   function resumeGame() {
     if (!gameRunning || !gamePaused) return;
     gamePaused = false;
-    if (pauseScreen) pauseScreen.classList.add('hidden');
+    if (pauseScreen) {
+      pauseScreen.classList.add('hidden');
+      pauseScreen.style.display = 'none';
+    }
     if (pauseBtn) pauseBtn.textContent = '⏸ Pausa';
     document.body.style.cursor = '';
     if (crosshair) crosshair.style.display = '';
@@ -8606,8 +8616,13 @@
     gamePaused = false;
     if (endTitle) endTitle.textContent = '¡Tiempo Agotado!';
     startScreen.classList.add('hidden');
+    startScreen.style.display = 'none';
     endScreen.classList.add('hidden');
-    if (pauseScreen) pauseScreen.classList.add('hidden');
+    endScreen.style.display = 'none';
+    if (pauseScreen) {
+      pauseScreen.classList.add('hidden');
+      pauseScreen.style.display = 'none';
+    }
     if (pauseBtn) {
       pauseBtn.classList.remove('hidden');
       pauseBtn.textContent = '⏸ Pausa';
@@ -8634,7 +8649,10 @@
   function exitToMenu() {
     gameRunning = false;
     gamePaused = false;
-    if (pauseScreen) pauseScreen.classList.add('hidden');
+    if (pauseScreen) {
+      pauseScreen.classList.add('hidden');
+      pauseScreen.style.display = 'none';
+    }
     if (pauseBtn) pauseBtn.classList.add('hidden');
     document.body.style.cursor = '';
     if (crosshair) crosshair.style.display = '';
@@ -8643,6 +8661,7 @@
     fullscreenMapVisible = false;
     finalScoreEl.textContent = score;
     endScreen.classList.remove('hidden');
+    endScreen.style.display = 'flex';
     if (document.pointerLockElement) document.exitPointerLock();
     resetMobileMove();
     setMobileControlsVisible(false);
@@ -8752,6 +8771,7 @@
 
       loadingScreen.style.display = 'none';
       startScreen.classList.remove('hidden');
+      startScreen.style.display = 'flex';
       requestAnimationFrame(animate);
     } catch (err) {
       setLoadingText('Error al cargar: ' + err.message);
