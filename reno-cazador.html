@@ -8558,60 +8558,12 @@
   }
 
   let score = 0;
+  let isStartingGame = false;
 
   function startGame() {
-    activeTargets.forEach(function (t) { scene.remove(t.mesh); });
-    activeTargets = [];
-    activeZombies.forEach(function (z) { scene.remove(z.mesh); });
-    activeZombies = [];
-    score = 0;
-    resetWeaponUpgrades();
-    ammo = maxShotgunAmmo;
-    minigunAmmo = maxMinigunAmmoCap;
-    playerMaterials.wood = 8;
-    playerMaterials.iron = 0;
-    playerMaterials.sand = 0;
-    playerMaterials.stone = 3;
-    craftedTools.axe = true;
-    craftedTools.pickaxe = true;
-    craftedTools.shovel = true;
-    craftedWeapons.shotgun = true;
-    craftedWeapons.minigun = true;
-    closeCraftPanel();
-    plantResourceNodes();
-    playerHealth = MAX_HEALTH;
-    equippedArmorType = null;
-    armorStands.forEach(function (s) {
-      if (s.mesh) s.mesh.visible = true;
-    });
-    if (playerArmorGroup) playerArmorGroup.visible = false;
-    clearArmorSparks();
-    updateArmorUI();
-    lastDamageTime = 0;
-    lastHordeWaveTime = 0;
-    hordeWaveCount = 0;
-    hordeNightActive = isNightTime();
-    updateHealthUI();
-    updateMaterialsUI();
-    updateWeaponButtonsUI();
-    woodPieces.forEach(function (p) {
-      if (!p.collected && p.mesh) scene.remove(p.mesh);
-    });
-    woodPieces.length = 0;
-    clearCampfire();
-    selectWeapon('shotgun');
-    isReloading = false;
-    isMinigunReloading = false;
-    stopMinigunFire();
-    minigunSpinSpeed = 0;
-    reloadBarContainer.classList.add('hidden');
-    reloadBarFill.style.width = '0%';
-    yaw = 0;
-    pitch = 0;
-    camera.position.set(BASE_CENTER.x, getTerrainHeight(BASE_CENTER.x, BASE_CENTER.z - 2) + 2, BASE_CENTER.z - 2);
-    gameTimeOfDay = 0.35;
-    scoreEl.textContent = score;
-    updateAmmoUI();
+    if (isStartingGame) return;
+    isStartingGame = true;
+
     gameRunning = true;
     gamePaused = false;
     if (endTitle) endTitle.textContent = '¡Tiempo Agotado!';
@@ -8631,12 +8583,6 @@
     fullscreenMapVisible = false;
     if (fullscreenMap) fullscreenMap.classList.add('hidden');
     if (pickupIndicator) pickupIndicator.style.display = 'none';
-    showHitMarker(
-      playerName
-        ? (isTouchDevice ? '🏠 ¡Suerte, ' + playerName + '! Joystick = mover · derecha = mirar' : '🏠 ¡Suerte, ' + playerName + '! Explora el mapa (M)')
-        : (isTouchDevice ? '🏠 Joystick izquierdo = mover · zona derecha = mirar · 🎯 disparar' : '🏠 Forja lista — fabrica hacha y pico, explora el mapa (M)'),
-      '#fbbf24'
-    );
 
     if (isTouchDevice) {
       setMobileControlsVisible(true);
@@ -8644,6 +8590,68 @@
     } else {
       requestLock();
     }
+
+    requestAnimationFrame(function () {
+      activeTargets.forEach(function (t) { scene.remove(t.mesh); });
+      activeTargets = [];
+      activeZombies.forEach(function (z) { scene.remove(z.mesh); });
+      activeZombies = [];
+      score = 0;
+      resetWeaponUpgrades();
+      ammo = maxShotgunAmmo;
+      minigunAmmo = maxMinigunAmmoCap;
+      playerMaterials.wood = 8;
+      playerMaterials.iron = 0;
+      playerMaterials.sand = 0;
+      playerMaterials.stone = 3;
+      craftedTools.axe = true;
+      craftedTools.pickaxe = true;
+      craftedTools.shovel = true;
+      craftedWeapons.shotgun = true;
+      craftedWeapons.minigun = true;
+      closeCraftPanel();
+      plantResourceNodes();
+      playerHealth = MAX_HEALTH;
+      equippedArmorType = null;
+      armorStands.forEach(function (s) {
+        if (s.mesh) s.mesh.visible = true;
+      });
+      if (playerArmorGroup) playerArmorGroup.visible = false;
+      clearArmorSparks();
+      updateArmorUI();
+      lastDamageTime = 0;
+      lastHordeWaveTime = 0;
+      hordeWaveCount = 0;
+      hordeNightActive = isNightTime();
+      updateHealthUI();
+      updateMaterialsUI();
+      updateWeaponButtonsUI();
+      woodPieces.forEach(function (p) {
+        if (!p.collected && p.mesh) scene.remove(p.mesh);
+      });
+      woodPieces.length = 0;
+      clearCampfire();
+      selectWeapon('shotgun');
+      isReloading = false;
+      isMinigunReloading = false;
+      stopMinigunFire();
+      minigunSpinSpeed = 0;
+      reloadBarContainer.classList.add('hidden');
+      reloadBarFill.style.width = '0%';
+      yaw = 0;
+      pitch = 0;
+      camera.position.set(BASE_CENTER.x, getTerrainHeight(BASE_CENTER.x, BASE_CENTER.z - 2) + 2, BASE_CENTER.z - 2);
+      gameTimeOfDay = 0.35;
+      scoreEl.textContent = score;
+      updateAmmoUI();
+      showHitMarker(
+        playerName
+          ? (isTouchDevice ? '🏠 ¡Suerte, ' + playerName + '! Joystick = mover · derecha = mirar' : '🏠 ¡Suerte, ' + playerName + '! Explora el mapa (M)')
+          : (isTouchDevice ? '🏠 Joystick izquierdo = mover · zona derecha = mirar · 🎯 disparar' : '🏠 Forja lista — fabrica hacha y pico, explora el mapa (M)'),
+        '#fbbf24'
+      );
+      isStartingGame = false;
+    });
   }
 
   function exitToMenu() {
