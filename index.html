@@ -1286,7 +1286,12 @@
             .nav-links, .nav-actions .btn-ghost { display: none; }
             .theme-toggle .theme-toggle-label { display: none; }
             .menu-toggle { display: grid; place-items: center; }
-            .hero { min-height: auto; padding: 7rem 0 4rem; }
+            .hero {
+                min-height: auto;
+                padding: 7rem 0 4rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
             .hero-content { text-align: center; }
             .hero-text, .hero-form { margin-inline: auto; }
             .hero-cta { justify-content: center; }
