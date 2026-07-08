@@ -18,6 +18,21 @@
   }
   canvas { display: block; }
 
+  #sceneContainer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+  #sceneContainer canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
   #crosshair {
     position: fixed;
     width: 36px;
@@ -4571,22 +4586,52 @@
     grassExclusionZones.push({ x: BASE_CENTER.x, z: BASE_CENTER.z, radius: BASE_CLEAR_RADIUS });
     grassExclusionZones.push({ x: ABANDONED_ZONE.x, z: ABANDONED_ZONE.z, radius: ABANDONED_ZONE.radius });
 
-    grassField = buildGrassField(32000, MAP_SIZE * 1.9, grassExclusionZones);
+    const grassCount = isTouchDevice ? 9000 : 32000;
+    const tallClusterCount = isTouchDevice ? 14 : 35;
+    const bladesPerCluster = isTouchDevice ? 280 : 600;
+
+    grassField = buildGrassField(grassCount, MAP_SIZE * 1.9, grassExclusionZones);
     scene.add(grassField);
     await yieldFrame();
 
-    tallGrassClusters = buildTallGrassClusters(35, 600);
+    tallGrassClusters = buildTallGrassClusters(tallClusterCount, bladesPerCluster);
     scene.add(tallGrassClusters);
   }
 
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
   function getViewportWidth() {
-    return window.visualViewport ? Math.round(window.visualViewport.width) : window.innerWidth;
+    const w = isTouchDevice
+      ? window.innerWidth
+      : (window.visualViewport ? window.visualViewport.width : window.innerWidth);
+    return Math.max(1, Math.round(w) || 320);
   }
 
   function getViewportHeight() {
-    return window.visualViewport ? Math.round(window.visualViewport.height) : window.innerHeight;
+    const h = isTouchDevice
+      ? window.innerHeight
+      : (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+    return Math.max(1, Math.round(h) || 480);
+  }
+
+  function handleViewportResize() {
+    const w = getViewportWidth();
+    const h = getViewportHeight();
+    if (w < 1 || h < 1) return;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(getPreferredPixelRatio());
+    if (!document.pointerLockElement) {
+      cursorTargetX = w / 2;
+      cursorTargetY = h / 2;
+      cursorCurrentX = cursorTargetX;
+      cursorCurrentY = cursorTargetY;
+      if (cloudCursor) {
+        cloudCursor.style.left = cursorCurrentX + 'px';
+        cloudCursor.style.top = cursorCurrentY + 'px';
+      }
+    }
   }
 
   function getPreferredPixelRatio() {
@@ -4608,7 +4653,7 @@
   });
   renderer.setSize(getViewportWidth(), getViewportHeight());
   renderer.setPixelRatio(getPreferredPixelRatio());
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !isTouchDevice;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -4621,29 +4666,24 @@
     renderer.shadowMap.autoUpdate = true;
   }
 
-  window.addEventListener('resize', function () {
-    camera.aspect = getViewportWidth() / getViewportHeight();
-    camera.updateProjectionMatrix();
-    renderer.setSize(getViewportWidth(), getViewportHeight());
-    renderer.setPixelRatio(getPreferredPixelRatio());
-    if (!pointerLocked) {
-      cursorTargetX = getViewportWidth() / 2;
-      cursorTargetY = getViewportHeight() / 2;
-      cursorCurrentX = cursorTargetX;
-      cursorCurrentY = cursorTargetY;
-      if (cloudCursor) {
-        cloudCursor.style.left = cursorCurrentX + 'px';
-        cloudCursor.style.top = cursorCurrentY + 'px';
-      }
-    }
+  window.addEventListener('resize', handleViewportResize);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(handleViewportResize, 200);
   });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleViewportResize);
+    window.visualViewport.addEventListener('scroll', handleViewportResize);
+  }
+  handleViewportResize();
+  setTimeout(handleViewportResize, 150);
+  setTimeout(handleViewportResize, 600);
 
   const ambient = new THREE.AmbientLight(0x4a5d8f, 0.5);
   scene.add(ambient);
 
   const moonLight = new THREE.DirectionalLight(0xcfe0ff, 1.1);
   moonLight.position.set(-15, 25, -10);
-  moonLight.castShadow = true;
+  moonLight.castShadow = !isTouchDevice;
   moonLight.shadow.mapSize.set(isTouchDevice ? 1024 : 2048, isTouchDevice ? 1024 : 2048);
   moonLight.shadow.camera.near = 1;
   moonLight.shadow.camera.far = 150;
@@ -8676,8 +8716,25 @@
   }
 
   initMobileControls();
-  document.getElementById('startBtn').addEventListener('click', startGame);
-  document.getElementById('restartBtn').addEventListener('click', startGame);
+  function bindGameStartButton(btn) {
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (!isTouchDevice) startGame();
+    });
+    if (isTouchDevice) {
+      btn.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        startGame();
+      }, { passive: false });
+    }
+  }
+  bindGameStartButton(document.getElementById('startBtn'));
+  bindGameStartButton(document.getElementById('restartBtn'));
+
+  window.addEventListener('error', function (event) {
+    if (!loadingScreen || loadingScreen.style.display === 'none') return;
+    setLoadingText('Error: ' + (event.message || 'no se pudo cargar el juego') + '. Recarga la página.');
+  });
 
   async function bootGame() {
     try {
@@ -8729,7 +8786,7 @@
       await yieldFrame();
 
       const treePositions = [];
-      const TARGET_TREES = 420;
+      const TARGET_TREES = isTouchDevice ? 140 : 420;
       const MAX_TREE_ATTEMPTS = 5000;
       const MIN_TREE_SPACING = 1.05;
       let treeAttempts = 0;
@@ -8768,7 +8825,7 @@
       plantCabins();
       plantAbandonedZone();
       plantResourceNodes();
-      scatterFallenBranches(20);
+      scatterFallenBranches(isTouchDevice ? 10 : 20);
       plantTreasureChests();
 
       setLoadingText('Sembrando pastizal 3D...');
@@ -8782,7 +8839,8 @@
       startScreen.style.display = 'flex';
       requestAnimationFrame(animate);
     } catch (err) {
-      setLoadingText('Error al cargar: ' + err.message);
+      loadingScreen.style.display = 'flex';
+      setLoadingText('Error al cargar: ' + err.message + '. Recarga la página o prueba en WiFi estable.');
       console.error(err);
     }
   }
