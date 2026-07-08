@@ -258,6 +258,24 @@
             align-items: start;
             gap: 1.5rem;
         }
+        #panel-action .product-games-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+        #panel-action .product-games-row .product-showcase--reno {
+            width: 100%;
+            max-width: none;
+            min-height: 380px;
+        }
+        #panel-action .product-games-row .product-showcase-bg {
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            max-width: none;
+            object-fit: cover;
+        }
         #panel-action .product-side {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -286,6 +304,9 @@
             pointer-events: auto;
         }
         @media (max-width: 768px) {
+            #panel-action .product-games-row {
+                grid-template-columns: 1fr;
+            }
             #panel-action .product-side {
                 grid-template-columns: 1fr;
             }
@@ -415,19 +436,36 @@
             </div>
 
             <div class="product-panel active" id="panel-action" role="tabpanel">
-                <div class="product-showcase product-showcase--reno">
-                    <video class="product-showcase-bg" muted loop playsinline controls preload="none" data-src="./public/video/renocazador.mp4">
-                    </video>
-                    <div class="product-showcase-content">
-                        <h3>Reno Cazador</h3>
-                        <p>Aventuras de acción intensas — juega <strong>Reno Cazador 3D</strong>, caza renos en un bosque nocturno en primera persona.</p>
-                        <ul class="product-list">
-                            <li>Combate frenético</li>
-                            <li>Modos multijugador</li>
-                            <li>Gráficos HD</li>
-                            <li>Actualizaciones regulares</li>
-                        </ul>
-                        <a href="./reno-cazador.html" class="btn btn-primary" style="margin-top: 1.5rem;">Jugar Reno cazador</a>
+                <div class="product-games-row">
+                    <div class="product-showcase product-showcase--reno">
+                        <video class="product-showcase-bg" muted loop playsinline controls preload="metadata" src="./public/video/renocazador.mp4">
+                        </video>
+                        <div class="product-showcase-content">
+                            <h3>Reno Cazador</h3>
+                            <p>Aventuras de acción intensas — juega <strong>Reno Cazador 3D</strong>, caza renos en un bosque nocturno en primera persona.</p>
+                            <ul class="product-list">
+                                <li>Combate frenético</li>
+                                <li>Modos multijugador</li>
+                                <li>Gráficos HD</li>
+                                <li>Actualizaciones regulares</li>
+                            </ul>
+                            <a href="./reno-cazador.html" class="btn btn-primary" style="margin-top: 1.5rem;">Jugar Reno cazador</a>
+                        </div>
+                    </div>
+                    <div class="product-showcase product-showcase--reno">
+                        <video class="product-showcase-bg" muted loop playsinline controls preload="metadata" src="./public/video/fondomecanica.mp4">
+                        </video>
+                        <div class="product-showcase-content">
+                            <h3>99 Noches</h3>
+                            <p>Sobrevive en el bosque durante <strong>99 noches</strong>: recolecta de día, fortifica tu refugio de noche y resiste a los monstruos.</p>
+                            <ul class="product-list">
+                                <li>Ciclo día y noche</li>
+                                <li>Gestión de recursos</li>
+                                <li>Dificultad progresiva</li>
+                                <li>99 noches para ganar</li>
+                            </ul>
+                            <a href="./99-noches.html" class="btn btn-primary" style="margin-top: 1.5rem;">Ir al inicio del juego</a>
+                        </div>
                     </div>
                 </div>
                 <div class="product-side">
@@ -577,6 +615,7 @@
         function ajustarContenedorVideo() {
             document.querySelectorAll('.product-showcase--reno .product-showcase-bg').forEach(function (video) {
                 function aplicarTamaño() {
+                    if (video.closest('.product-games-row')) return;
                     if (!video.videoWidth || !video.videoHeight) return;
                     var panel = video.closest('#panel-action') || video.closest('.container');
                     var maxW = panel ? panel.clientWidth : 1080;
@@ -601,6 +640,11 @@
             actualizarEnlacesConNombre();
             initVideosLazy();
             ajustarContenedorVideo();
+            document.querySelectorAll('.product-panel.active video[src]').forEach(function (video) {
+                video.load();
+                var playPromise = video.play();
+                if (playPromise && playPromise.catch) playPromise.catch(function () {});
+            });
 
             document.querySelectorAll('.product-tab').forEach(function (tab) {
                 tab.addEventListener('click', function () {

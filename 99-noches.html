@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99 Noches: El Refugio</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        #game-container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #333;
+        }
+        h1 {
+            color: #ff3333;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .stat-box {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            width: 30%;
+        }
+        #health-val { color: #ff4444; }
+        #resource-val { color: #44ff44; }
+        #night-val { color: #ffaa00; }
+        
+        #phase-indicator {
+            font-size: 1.5em;
+            margin: 15px 0;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .day { background: #333300; color: #ffff66; }
+        .night { background: #1a0000; color: #ff6666; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px #ff0000; }
+            50% { box-shadow: 0 0 20px #ff0000; }
+            100% { box-shadow: 0 0 5px #ff0000; }
+        }
+
+        button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover:not(:disabled) {
+            background: #666;
+            transform: scale(1.02);
+        }
+        button:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+        #log {
+            margin-top: 20px;
+            height: 150px;
+            overflow-y: auto;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9em;
+            border: 1px solid #333;
+        }
+        #log p {
+            margin: 5px 0;
+            border-bottom: 1px solid #222;
+            padding-bottom: 5px;
+        }
+        .win { color: #00ff00; font-weight: bold; }
+        .lose { color: #ff0000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>🌲 99 NOCHES 🌲</h1>
+    <p>Sobrevive en el bosque. Recolecta de día, escóndete de noche.</p>
+    
+    <div class="stats">
+        <div class="stat-box">❤️ Salud<br><span id="health-val">100</span></div>
+        <div class="stat-box">🌙 Noche<br><span id="night-val">1</span> / 99</div>
+        <div class="stat-box">📦 Recursos<br><span id="resource-val">0</span></div>
+    </div>
+
+    <div id="phase-indicator" class="day">☀️ FASE: DÍA (Acciones: 3)</div>
+
+    <button id="action-btn" onclick="doAction()">🪓 Recolectar Recursos</button>
+
+    <div id="log">
+        <p>Has llegado al bosque. El sol está alto, pero no durará para siempre...</p>
+    </div>
+</div>
+
+<script>
+    let currentNight = 1;
+    let health = 100;
+    let resources = 0;
+    let isDay = true;
+    let actionsLeft = 3;
+    let gameOver = false;
+    let isTransitioning = false;
+
+    const healthEl = document.getElementById('health-val');
+    const nightEl = document.getElementById('night-val');
+    const resourceEl = document.getElementById('resource-val');
+    const phaseEl = document.getElementById('phase-indicator');
+    const logEl = document.getElementById('log');
+    const btn = document.getElementById('action-btn');
+
+    function updateUI() {
+        healthEl.innerText = health;
+        nightEl.innerText = currentNight;
+        resourceEl.innerText = resources;
+
+        if (gameOver) {
+            btn.disabled = true;
+            return;
+        }
+
+        if (isTransitioning) {
+            btn.disabled = true;
+            return;
+        }
+        
+        if (isDay) {
+            phaseEl.className = 'day';
+            phaseEl.innerText = `☀️ FASE: DÍA (Acciones: ${actionsLeft})`;
+            btn.innerText = '🪓 Recolectar Recursos';
+            btn.disabled = actionsLeft <= 0;
+        } else {
+            phaseEl.className = 'night';
+            phaseEl.innerText = `🌙 FASE: NOCHE (¡Peligro!)`;
+            btn.innerText = '🛡️ Fortificar Refugio y Sobrevivir';
+            btn.disabled = false;
+        }
+    }
+
+    function addLog(msg, type = '') {
+        const p = document.createElement('p');
+        p.innerHTML = msg;
+        if (type) p.className = type;
+        logEl.prepend(p);
+        if (logEl.children.length > 15) logEl.removeChild(logEl.lastChild);
+    }
+
+    function doAction() {
+        if (gameOver || isTransitioning) return;
+
+        if (isDay) {
+            if (actionsLeft <= 0) return;
+
+            const gathered = Math.floor(Math.random() * 3) + 2;
+            resources += gathered;
+            actionsLeft--;
+            addLog(`Recolectaste <b>${gathered}</b> recursos. (${actionsLeft} acciones restantes)`);
+            
+            if (actionsLeft <= 0) {
+                isTransitioning = true;
+                updateUI();
+                setTimeout(() => {
+                    isDay = false;
+                    isTransitioning = false;
+                    updateUI();
+                    addLog("🌙 <b>Ha caído la noche...</b> Se escuchan pasos afuera.");
+                }, 800);
+                return;
+            }
+        } else {
+            const required = Math.floor(currentNight / 5) + 2;
+            isTransitioning = true;
+            updateUI();
+            
+            if (resources >= required) {
+                resources -= required;
+                addLog(`Usaste <b>${required}</b> recursos para barricar la puerta. ¡Los monstruos se fueron!`);
+            } else {
+                const damage = (required - resources) * 15;
+                health -= damage;
+                resources = 0;
+                addLog(`¡No tenías suficientes recursos! Un monstruo entró y te hirió (-${damage} HP).`, 'lose');
+            }
+
+            if (health <= 0) {
+                health = 0;
+                gameOver = true;
+                isTransitioning = false;
+                addLog(`💀 <b>HAS MUERTO</b> en la noche ${currentNight}. El bosque te ha consumido.`, 'lose');
+                btn.innerText = '💀 Juego Terminado';
+                updateUI();
+                return;
+            }
+
+            if (currentNight >= 99) {
+                gameOver = true;
+                isTransitioning = false;
+                addLog(`🏆 <b>¡INCREÍBLE!</b> Has sobrevivido a las 99 noches. ¡Eres una leyenda!`, 'win');
+                btn.innerText = '🏆 ¡Victoria!';
+                updateUI();
+                return;
+            }
+
+            setTimeout(() => {
+                currentNight++;
+                isDay = true;
+                actionsLeft = 3;
+                isTransitioning = false;
+                updateUI();
+                addLog(`☀️ <b>Ha amanecido.</b> Has sobrevivido a la noche ${currentNight - 1}.`);
+            }, 1500);
+            return;
+        }
+        updateUI();
+    }
+
+    updateUI();
+</script>
+
+</body>
+</html>

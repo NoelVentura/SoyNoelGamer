@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instrucciones — Reno Cazador 3D</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(ellipse at top, #0f1f14 0%, #050505 55%);
+      color: #f5f5f5;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body class="px-4 py-10">
+  <div class="max-w-2xl mx-auto">
+    <a href="reno-cazador.html" class="inline-flex items-center gap-2 text-emerald-300 hover:text-emerald-200 text-sm mb-6 transition">
+      ← Volver al juego
+    </a>
+
+    <h1 class="text-4xl font-extrabold text-emerald-400 mb-2">🦌 Reno Cazador 3D</h1>
+    <p class="text-gray-400 mb-8">Guía de controles, mecánicas y supervivencia.</p>
+
+    <div class="bg-white/5 border border-white/10 rounded-xl p-6 text-sm space-y-6">
+      <section>
+        <h2 class="text-lg font-bold text-cyan-300 mb-3">Controles básicos</h2>
+        <div class="space-y-2 text-gray-200">
+          <p>🖱️ <strong>Mover mouse</strong>: mirar alrededor</p>
+          <p>⌨️ <strong>W A S D</strong>: caminar (adelante, izquierda, atrás, derecha)</p>
+          <p>🎯 <strong>Click izquierdo</strong>: disparar / talar</p>
+          <p>🔄 <strong>Tecla R</strong>: recargar</p>
+          <p>🔫 <strong>Tecla 1</strong> escopeta · <strong>Tecla 2</strong> hacha · <strong>Tecla 3</strong> minigun · <strong>4</strong> pico · <strong>5</strong> pala · <strong>Q</strong> siguiente arma</p>
+          <p>🪵 <strong>Tecla E</strong>: recoger madera / equipar armadura / abrir cofres</p>
+          <p>🔥 <strong>Tecla F</strong>: encender fogata (5 madera, solo de noche)</p>
+          <p>🗺️ <strong>Tecla M</strong>: abrir/cerrar mapa del territorio</p>
+          <p>⏸️ <strong>Tecla P</strong> o <strong>Esc</strong>: pausar / continuar</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-amber-300 mb-3">Mundo y objetivos</h2>
+        <div class="space-y-2 text-gray-200">
+          <p>🏠 Empiezas en tu <strong>base</strong> — defiéndela de noche</p>
+          <p>🏚️ Zona de <strong>edificios abandonados</strong> al suroeste — búscala en el mapa (M)</p>
+          <p>📦 <strong>Cofres</strong> en la base, cabañas y ruinas — <strong>E</strong> para mejorar armas</p>
+          <p>🛡️ <strong>Armaduras</strong> en la base — <strong>E</strong> para equipar: madera, metal o cyber</p>
+          <p>🌅 Ciclo día/noche continuo — juega sin límite de tiempo</p>
+          <p>🧟 De noche llegan <strong>hordas de zombies</strong> a tu base</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-yellow-300 mb-3">Puntaje y recursos</h2>
+        <div class="space-y-2 text-gray-200">
+          <p>🦌 Reno: +10 pts · 🐻 Oso: +25 pts · 🧟 Zombie: +15 pts</p>
+          <p>🦇 Evita los murciélagos voladores (-5 pts)</p>
+          <p>🌲 Cada árbol talado: 5 piezas de madera</p>
+          <p>🔥 <strong>Minigun</strong>: 100 balas, disparo automático, cañones rotatorios</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-4 justify-center">
+      <a id="playLink" href="reno-cazador.html" class="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 transition rounded-full text-lg font-bold text-white shadow-xl">
+        Comenzar a Cazar
+      </a>
+      <a id="catalogLink" href="juegos.html#action" class="px-8 py-3 bg-white/10 border border-white/20 hover:bg-white/15 transition rounded-full text-lg font-bold text-gray-200">
+        Catálogo de juegos
+      </a>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      let nombre = params.get('nombre') || localStorage.getItem('nombreAlumno');
+      if (!nombre) return;
+      nombre = nombre.trim();
+      if (!nombre) return;
+      localStorage.setItem('nombreAlumno', nombre);
+      document.querySelectorAll('a[href]').forEach(function (a) {
+        const href = a.getAttribute('href');
+        if (!href || href.includes('nombre=')) return;
+        const hashIdx = href.indexOf('#');
+        const base = hashIdx >= 0 ? href.slice(0, hashIdx) : href;
+        const hash = hashIdx >= 0 ? href.slice(hashIdx) : '';
+        const sep = base.includes('?') ? '&' : '?';
+        a.setAttribute('href', base + sep + 'nombre=' + encodeURIComponent(nombre) + hash);
+      });
+      const h1 = document.querySelector('h1');
+      if (h1) {
+        const sub = document.createElement('p');
+        sub.className = 'text-cyan-300 font-bold mb-6';
+        sub.textContent = 'Jugador: ' + nombre.toUpperCase();
+        h1.insertAdjacentElement('afterend', sub);
+      }
+    })();
+  </script>
+</body>
+</html>
