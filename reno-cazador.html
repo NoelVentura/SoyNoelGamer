@@ -726,7 +726,7 @@
 
 <div id="loadingScreen">
   <div class="spinner"></div>
-  <p id="loadingStatus" class="mt-4 text-sm text-gray-300">Generando texturas del bosque...</p>
+  <p id="loadingStatus" class="mt-4 text-sm text-gray-300">Cargando Reno Cazador...</p>
 </div>
 
 <div id="sceneContainer"></div>
@@ -987,6 +987,16 @@
 
   const loadingStatus = document.getElementById('loadingStatus');
 
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  function texSize(size) {
+    return isTouchDevice ? Math.max(128, Math.floor(size * 0.5)) : size;
+  }
+
+  function texCount(count) {
+    return isTouchDevice ? Math.max(1, Math.floor(count * 0.3)) : count;
+  }
+
   let playerName = '';
 
   function withNombreParam(url, nombre) {
@@ -1145,6 +1155,12 @@
     return new Promise(function (resolve) { requestAnimationFrame(function () { resolve(); }); });
   }
 
+  function yieldToMain() {
+    return yieldFrame().then(function () {
+      return new Promise(function (resolve) { setTimeout(resolve, 0); });
+    });
+  }
+
   function setLoadingText(text) {
     if (loadingStatus) loadingStatus.textContent = text;
   }
@@ -1172,7 +1188,7 @@
   }
 
   function generateBarkTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1184,7 +1200,7 @@
     ctx.fillStyle = baseGrad;
     ctx.fillRect(0, 0, size, size);
 
-    const grooveCount = 45;
+    const grooveCount = texCount(45);
     for (let i = 0; i < grooveCount; i++) {
       const x = (size / grooveCount) * i + (Math.random() - 0.5) * 10;
       const width = 4 + Math.random() * 14;
@@ -1204,7 +1220,7 @@
       ctx.stroke();
     }
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < texCount(40); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = 10 + Math.random() * 50;
@@ -1217,13 +1233,15 @@
       ctx.fill();
     }
 
-    const imgData = ctx.getImageData(0, 0, size, size);
-    const d = imgData.data;
-    for (let i = 0; i < d.length; i += 16) {
-      const n = (Math.random() - 0.5) * 18;
-      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+    if (!isTouchDevice) {
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 16) {
+        const n = (Math.random() - 0.5) * 18;
+        d[i] += n; d[i + 1] += n; d[i + 2] += n;
+      }
+      ctx.putImageData(imgData, 0, 0);
     }
-    ctx.putImageData(imgData, 0, 0);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping;
@@ -1234,14 +1252,14 @@
   }
 
   function generateBarkNormalTexture() {
-    const size = 1024;
+    const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#8080ff';
     ctx.fillRect(0, 0, size, size);
 
-    const grooveCount = 60;
+    const grooveCount = texCount(60);
     for (let i = 0; i < grooveCount; i++) {
       const x = (size / grooveCount) * i + (Math.random() - 0.5) * 6;
       ctx.beginPath();
@@ -1264,7 +1282,7 @@
   }
 
   function generateLeafTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1274,7 +1292,7 @@
 
     const greens = ['#1f4a28', '#274f2c', '#173a1d', '#2e5a32', '#13321a', '#3a6b3e'];
 
-    for (let i = 0; i < 600; i++) {
+    for (let i = 0; i < texCount(600); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = 6 + Math.random() * 18;
@@ -1292,7 +1310,7 @@
       ctx.restore();
     }
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < texCount(60); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = 2 + Math.random() * 6;
@@ -1313,7 +1331,8 @@
   }
 
   function generateSkyTextureVariant(baseColor, starAlpha) {
-    const width = 1024, height = 512;
+    const width = texSize(1024);
+    const height = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext('2d');
@@ -1326,7 +1345,7 @@
     ctx.fillRect(0, 0, width, height);
 
     if (starAlpha > 0) {
-      for (let i = 0; i < 1800; i++) {
+      for (let i = 0; i < texCount(1800); i++) {
         const x = Math.random() * width;
         const y = Math.random() * height * 0.75;
         const r = Math.random() * 1.4;
@@ -1346,7 +1365,7 @@
   }
 
   function generateCloudTexture() {
-    const size = 768;
+    const size = texSize(768);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1383,7 +1402,7 @@
   }
 
   function generateGrassTexture() {
-    const size = 1024;
+    const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1396,7 +1415,7 @@
     ctx.fillRect(0, 0, size, size);
 
     const patchGreens = ['#1a3a20', '#0e2012', '#214a28', '#122c17'];
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < texCount(60); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = 40 + Math.random() * 120;
@@ -1410,7 +1429,7 @@
     }
 
     const bladeGreens = ['#2a5c33', '#1f4a28', '#356b3d', '#173a1d', '#3d7a45'];
-    for (let i = 0; i < 4500; i++) {
+    for (let i = 0; i < texCount(4500); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const len = 4 + Math.random() * 10;
@@ -1427,7 +1446,7 @@
     }
     ctx.globalAlpha = 1;
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < texCount(500); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = 1 + Math.random() * 2.5;
@@ -1437,13 +1456,15 @@
       ctx.fill();
     }
 
-    const imgData = ctx.getImageData(0, 0, size, size);
-    const d = imgData.data;
-    for (let i = 0; i < d.length; i += 16) {
-      const n = (Math.random() - 0.5) * 14;
-      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+    if (!isTouchDevice) {
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 16) {
+        const n = (Math.random() - 0.5) * 14;
+        d[i] += n; d[i + 1] += n; d[i + 2] += n;
+      }
+      ctx.putImageData(imgData, 0, 0);
     }
-    ctx.putImageData(imgData, 0, 0);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping;
@@ -1455,14 +1476,14 @@
   }
 
   function generateGrassNormalTexture() {
-    const size = 1024;
+    const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#8080ff';
     ctx.fillRect(0, 0, size, size);
 
-    for (let i = 0; i < 2000; i++) {
+    for (let i = 0; i < texCount(2000); i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const len = 3 + Math.random() * 6;
@@ -1484,7 +1505,7 @@
   }
 
   function generateWoodPlankTexture() {
-    const size = 1024;
+    const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1540,7 +1561,7 @@
   }
 
   function generateRoofTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1569,7 +1590,7 @@
   }
 
   function generateRuinStoneTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -1625,7 +1646,7 @@
   }
 
   function generateCastleStoneTexture() {
-    const size = 1024;
+    const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
@@ -1690,7 +1711,7 @@
   }
 
   function generateRuinWeatheredWoodTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -1746,7 +1767,7 @@
   }
 
   function generateRuinAshGroundTexture() {
-    const size = 512;
+    const size = texSize(512);
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -3043,13 +3064,18 @@
     return mat;
   }
 
-  function initTextures() {
+  async function initTextures() {
     barkTexture = generateBarkTexture();
-    barkNormal = generateBarkNormalTexture();
+    await yieldToMain();
+    if (!isTouchDevice) {
+      barkNormal = generateBarkNormalTexture();
+      await yieldToMain();
+    }
     leafTexture = generateLeafTexture();
+    await yieldToMain();
     trunkMat = new THREE.MeshStandardMaterial({
       map: barkTexture,
-      normalMap: barkNormal,
+      normalMap: barkNormal || null,
       normalScale: new THREE.Vector2(0.85, 0.85),
       roughness: 0.95,
       metalness: 0.02,
@@ -4598,8 +4624,6 @@
     scene.add(tallGrassClusters);
   }
 
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-
   function getViewportWidth() {
     const w = isTouchDevice
       ? window.innerWidth
@@ -4787,7 +4811,8 @@
     skyTexDay = generateSkyTextureVariant(skyColors.day, 0);
     skyTexDusk = generateSkyTextureVariant(skyColors.dusk, 0.1);
 
-    const skyGeo = new THREE.SphereGeometry(400, 48, 48);
+    const skySegs = isTouchDevice ? 24 : 48;
+    const skyGeo = new THREE.SphereGeometry(400, skySegs, skySegs);
     skyMatA = new THREE.MeshBasicMaterial({
       map: skyTexNight,
       side: THREE.BackSide,
@@ -4902,12 +4927,11 @@
   }
 
   function initClouds() {
-    cloudTextures = [
-      generateCloudTexture(),
-      generateCloudTexture(),
-      generateCloudTexture(),
-      generateCloudTexture()
-    ];
+    cloudTextures = [];
+    const cloudTexCount = isTouchDevice ? 2 : 4;
+    for (let ci = 0; ci < cloudTexCount; ci++) {
+      cloudTextures.push(generateCloudTexture());
+    }
 
     cloudMat = new THREE.MeshBasicMaterial({
       map: cloudTextures[0],
@@ -4919,7 +4943,7 @@
 
     cloudsGroup = new THREE.Group();
     scene.add(cloudsGroup);
-    buildClouds(24);
+    buildClouds(isTouchDevice ? 10 : 24);
   }
 
   function buildClouds(count) {
@@ -5554,9 +5578,15 @@
     ctx.stroke();
   }
 
+  function ensureHeightmapCache() {
+    if (heightmapImageData) return;
+    buildHeightmapCache();
+  }
+
   function toggleFullscreenMap() {
     fullscreenMapVisible = !fullscreenMapVisible;
     if (fullscreenMapVisible) {
+      ensureHeightmapCache();
       fullscreenMap.classList.remove('hidden');
       if (!fullscreenMapCtx) {
         fullscreenMapCtx = fullscreenMapCanvas.getContext('2d');
@@ -5646,7 +5676,7 @@
     if (seaMesh) scene.remove(seaMesh);
 
     const TERRAIN_SIZE = MAP_SIZE * 2.5;
-    const TERRAIN_SEGMENTS = 220;
+    const TERRAIN_SEGMENTS = isTouchDevice ? 96 : 220;
 
     const groundGeo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
     groundGeo.rotateX(-Math.PI / 2);
@@ -5661,7 +5691,7 @@
 
     const islandGroundMat = new THREE.MeshStandardMaterial({
       map: grassTexture,
-      normalMap: grassNormal,
+      normalMap: grassNormal || null,
       normalScale: new THREE.Vector2(0.55, 0.55),
       roughness: 0.95,
       metalness: 0,
@@ -6231,12 +6261,16 @@
   let bearFurMat, bearSnoutMat, bearNoseMat, bearClawMat, bearEyeMat;
 
   function initBearTextures() {
-    const bearFurTexture = generateBearFurTexture();
-    bearFurMat = new THREE.MeshStandardMaterial({
-      map: bearFurTexture,
-      roughness: 0.95,
-      metalness: 0.0
-    });
+    if (isTouchDevice) {
+      bearFurMat = new THREE.MeshStandardMaterial({ color: 0x5a3c22, roughness: 0.95, metalness: 0 });
+    } else {
+      const bearFurTexture = generateBearFurTexture();
+      bearFurMat = new THREE.MeshStandardMaterial({
+        map: bearFurTexture,
+        roughness: 0.95,
+        metalness: 0.0
+      });
+    }
     bearSnoutMat = new THREE.MeshStandardMaterial({ color: 0xd9c4a3, roughness: 0.85 });
     bearNoseMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.4 });
     bearClawMat = new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.5 });
@@ -8742,40 +8776,50 @@
         throw new Error('Three.js no cargó. Comprueba tu conexión a internet.');
       }
 
-      setLoadingText('Generando ciclo día/noche...');
-      await yieldFrame();
+      setLoadingText('Cargando Reno Cazador...');
+      await yieldToMain();
+
+      setLoadingText('Generando cielo...');
+      await yieldToMain();
       initDayNightSky();
 
       setLoadingText('Generando nubes...');
-      await yieldFrame();
+      await yieldToMain();
       initClouds();
 
       setLoadingText('Generando pasto...');
-      await yieldFrame();
+      await yieldToMain();
       grassTexture = generateGrassTexture();
 
-      setLoadingText('Generando relieve del suelo...');
-      await yieldFrame();
-      grassNormal = generateGrassNormalTexture();
+      if (!isTouchDevice) {
+        setLoadingText('Generando relieve del suelo...');
+        await yieldToMain();
+        grassNormal = generateGrassNormalTexture();
+      } else {
+        grassNormal = null;
+      }
 
       setLoadingText('Generando texturas del bosque...');
-      await yieldFrame();
-      initTextures();
+      await yieldToMain();
+      await initTextures();
 
-      setLoadingText('Generando pelaje de oso...');
-      await yieldFrame();
+      setLoadingText('Generando terreno...');
+      await yieldToMain();
       initBearTextures();
 
       initIslandTerrain();
       camera.position.set(BASE_CENTER.x, getTerrainHeight(BASE_CENTER.x, BASE_CENTER.z - 2) + 2, BASE_CENTER.z - 2);
 
-      setLoadingText('Generando mapa del territorio...');
-      await yieldFrame();
-      buildHeightmapCache();
+      if (!isTouchDevice) {
+        setLoadingText('Generando mapa del territorio...');
+        await yieldToMain();
+        buildHeightmapCache();
+      }
 
       setLoadingText('Generando cabañas...');
-      await yieldFrame();
+      await yieldToMain();
       initCabinMaterials();
+      await yieldToMain();
       initRuinMaterials();
 
       setLoadingText('Construyendo tu base...');
