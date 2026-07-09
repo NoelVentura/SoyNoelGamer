@@ -6958,7 +6958,7 @@
     }
   });
 
-  const MOVE_SPEED = 0.78;
+  const MOVE_SPEED = isTouchDevice ? 0.18 : 0.78;
   const PLAYER_RADIUS = 0.35;
   let bobTime = 0;
   let isMoving = false;
@@ -6993,7 +6993,7 @@
 
     if (isMoving) {
       const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      const speed = MOVE_SPEED * getArmorSpeedMultiplier();
+      const speed = MOVE_SPEED * getArmorSpeedMultiplier() * (isTouchDevice ? (dt / 16.67) : 1);
       moveX = (moveX / len) * speed;
       moveZ = (moveZ / len) * speed;
 
