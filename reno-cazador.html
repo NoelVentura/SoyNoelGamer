@@ -493,13 +493,14 @@
 
   #mobileActionBtns {
     position: absolute;
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(12px, env(safe-area-inset-bottom));
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(3, 1fr) !important;
+    gap: 6px !important;
     pointer-events: none;
+    width: 110px !important;
   }
   .mobile-action-btn,
   .mobile-fire-btn {
@@ -528,11 +529,12 @@
     border-color: rgba(16, 185, 129, 0.9);
   }
   .mobile-fire-btn {
-    width: 74px;
-    height: 74px;
-    font-size: 30px;
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 26px !important;
     border-color: rgba(239, 68, 68, 0.55);
     background: rgba(80, 10, 10, 0.45);
+    grid-column: span 2 !important;
   }
   .mobile-fire-btn:active {
     background: rgba(239, 68, 68, 0.5);
@@ -543,7 +545,19 @@
     body:not(.touch-device) { cursor: default; }
     #moveKeys { display: none !important; }
     .desktop-only-hint { display: none !important; }
-    #upgradePanel { display: none !important; }
+    #upgradePanel {
+      display: block !important;
+      position: fixed !important;
+      top: 10.5rem !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
+      right: auto !important;
+      bottom: auto !important;
+      font-size: 10px !important;
+      min-width: 110px !important;
+      padding: 6px 8px !important;
+      transform: none !important;
+      transform-origin: none !important;
+    }
 
     /* ── PUNTAJE: arriba izquierda, compacto ── */
     #score {
@@ -565,13 +579,12 @@
 
     /* ── VIDA: izquierda, encima del joystick ── */
     #healthBar {
-      top: auto !important;
-      bottom: max(200px, calc(env(safe-area-inset-bottom) + 190px)) !important;
-      left: max(6px, env(safe-area-inset-left)) !important;
-      right: auto !important;
-      min-width: 115px !important;
-      max-width: 130px !important;
-      padding: 5px 8px !important;
+      top: 3.8rem !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
+      min-width: 120px !important;
+      padding: 6px 8px !important;
+      transform: none !important;
+      transform-origin: none !important;
     }
     #healthBar .label { font-size: 8px !important; margin-bottom: 2px !important; }
     #healthBar .bar-bg { height: 7px !important; }
@@ -579,25 +592,25 @@
 
     /* ── ARMADURA: izquierda, encima de vida ── */
     #armorStatus {
-      top: auto !important;
-      bottom: max(248px, calc(env(safe-area-inset-bottom) + 238px)) !important;
-      left: max(6px, env(safe-area-inset-left)) !important;
-      right: auto !important;
-      font-size: 8px !important;
-      padding: 3px 6px !important;
-      max-width: 130px !important;
+      top: 6.8rem !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
+      font-size: 10px !important;
+      transform: none !important;
+      transform-origin: none !important;
     }
 
     /* ── MUNICIÓN: izquierda, encima de vida ── */
     #ammoPanel {
-      bottom: max(200px, calc(env(safe-area-inset-bottom) + 190px)) !important;
-      left: max(145px, calc(env(safe-area-inset-left) + 135px)) !important;
+      bottom: max(240px, calc(env(safe-area-inset-bottom) + 230px)) !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
       right: auto !important;
       top: auto !important;
-      padding: 5px 8px !important;
+      padding: 6px 10px !important;
+      transform: none !important;
+      transform-origin: none !important;
     }
     #ammoPanel .text-xs { font-size: 8px !important; }
-    #ammoPanel #ammo { font-size: 1.1rem !important; }
+    #ammoPanel #ammo { font-size: 1.3rem !important; }
 
     /* ── MATERIALES: centro-derecha, encima de botones acción ── */
     #materialsPanel {
@@ -617,29 +630,21 @@
 
     /* ── BARRA DE ARMAS: centro inferior fijo ── */
     .weapon-bar-mobile {
-      position: fixed !important;
-      bottom: max(148px, calc(env(safe-area-inset-bottom) + 138px)) !important;
       top: auto !important;
+      bottom: max(180px, calc(env(safe-area-inset-bottom) + 170px)) !important;
       left: 50% !important;
-      transform: translateX(-50%) !important;
       right: auto !important;
-      max-width: 94vw !important;
-      width: max-content !important;
-      padding: 4px 5px !important;
+      transform: translateX(-50%) !important;
+      max-width: 98vw !important;
+      padding: 5px 6px !important;
       gap: 3px !important;
-      flex-wrap: nowrap !important;
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important;
-      z-index: 52 !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
     }
-    .weapon-bar-mobile::-webkit-scrollbar { display: none !important; }
     .weapon-bar-mobile button {
       padding: 5px 7px !important;
-      font-size: 8px !important;
-      white-space: nowrap !important;
-      flex-shrink: 0 !important;
-      min-width: 0 !important;
+      font-size: 9px !important;
+      min-width: 52px !important;
     }
 
     /* ── RECARGA: centrada sobre barra armas ── */
@@ -650,24 +655,25 @@
 
     /* ── MINIMAPA: sobre munición ── */
     #minimapPanel {
-      bottom: max(290px, calc(env(safe-area-inset-bottom) + 280px)) !important;
-      left: max(6px, env(safe-area-inset-left)) !important;
-      top: auto !important;
-      right: auto !important;
-      padding: 4px !important;
+      bottom: max(320px, calc(env(safe-area-inset-bottom) + 310px)) !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
+      transform: none !important;
+      transform-origin: none !important;
     }
     #minimapCanvas {
-      width: 96px !important;
-      height: 96px !important;
+      width: 100px !important;
+      height: 100px !important;
     }
     #minimapPanel .text-xs { font-size: 7px !important; }
 
     /* ── PICKUP INDICATOR ── */
     #pickupIndicator {
-      bottom: max(250px, calc(env(safe-area-inset-bottom) + 240px)) !important;
-      font-size: 10px !important;
-      max-width: 82vw !important;
-      padding: 5px 9px !important;
+      bottom: max(340px, calc(env(safe-area-inset-bottom) + 330px)) !important;
+      font-size: 11px !important;
+      max-width: 90vw !important;
+      text-align: center !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
     }
 
     /* ── MAPA COMPLETO ── */
