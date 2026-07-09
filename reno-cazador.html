@@ -6,8 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Reno Cazador 3D - Bosque Realista</title>
+<script src="vendor/three.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   body {
     margin: 0;
@@ -988,6 +988,11 @@
   const loadingStatus = document.getElementById('loadingStatus');
 
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const isFileProtocol = window.location.protocol === 'file:';
+
+  if (isFileProtocol && loadingStatus) {
+    loadingStatus.textContent = 'Abriendo archivo local... (necesitas internet la primera vez)';
+  }
 
   function texSize(size) {
     return isTouchDevice ? Math.max(128, Math.floor(size * 0.5)) : size;
@@ -1163,6 +1168,7 @@
 
   function setLoadingText(text) {
     if (loadingStatus) loadingStatus.textContent = text;
+    window.__renoLoadStep = text;
   }
 
   function applyWindShader(shader) {
@@ -1402,6 +1408,26 @@
   }
 
   function generateGrassTexture() {
+    if (isTouchDevice) {
+      const size = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#1a3a20');
+      grad.addColorStop(1, '#0d1f11');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(40, 40);
+      applyTextureQuality(tex);
+      tex.encoding = THREE.sRGBEncoding;
+      return tex;
+    }
+
     const size = texSize(1024);
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
@@ -3065,6 +3091,17 @@
   }
 
   async function initTextures() {
+    if (isTouchDevice) {
+      barkTexture = null;
+      barkNormal = null;
+      leafTexture = null;
+      trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2a1a, roughness: 0.95, metalness: 0.02 });
+      stoneMat = new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9, metalness: 0.05 });
+      sharedFoliageMat = new THREE.MeshStandardMaterial({ color: 0x274f2c, roughness: 0.9, metalness: 0, vertexColors: true });
+      sharedFoliageMat.onBeforeCompile = applyWindShader;
+      return;
+    }
+
     barkTexture = generateBarkTexture();
     await yieldToMain();
     if (!isTouchDevice) {
@@ -3086,6 +3123,14 @@
   }
 
   function initCabinMaterials() {
+    if (isTouchDevice) {
+      woodMat = new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.85, metalness: 0.05 });
+      roofMat = new THREE.MeshStandardMaterial({ color: 0x2e1a10, roughness: 0.9, metalness: 0.02 });
+      windowMat = new THREE.MeshStandardMaterial({ color: 0xffdd88, emissive: 0x664422, roughness: 0.3 });
+      doorMat = new THREE.MeshStandardMaterial({ color: 0x2b1810, roughness: 0.8 });
+      return;
+    }
+
     const woodPlankTexture = generateWoodPlankTexture();
     const roofTexture = generateRoofTexture();
     woodMat = new THREE.MeshStandardMaterial({
@@ -3107,6 +3152,18 @@
   }
 
   function initRuinMaterials() {
+    if (isTouchDevice) {
+      ruinWoodMat = new THREE.MeshStandardMaterial({ color: 0xb8a894, roughness: 0.94, metalness: 0.02 });
+      ruinWoodDarkMat = new THREE.MeshStandardMaterial({ color: 0x6e5a48, roughness: 0.98, metalness: 0 });
+      ruinStoneMat = new THREE.MeshStandardMaterial({ color: 0x9a9590, roughness: 0.92, metalness: 0.04 });
+      ruinRoofMat = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.96, metalness: 0.01 });
+      ruinMossMat = new THREE.MeshStandardMaterial({ color: 0x3d5238, roughness: 1, metalness: 0 });
+      ruinMetalMat = new THREE.MeshStandardMaterial({ color: 0x5c4030, roughness: 0.78, metalness: 0.55 });
+      ruinAshMat = new THREE.MeshStandardMaterial({ color: 0x8a8480, roughness: 1, metalness: 0 });
+      ruinHayMat = new THREE.MeshStandardMaterial({ color: 0x8a7038, roughness: 0.98, metalness: 0 });
+      return;
+    }
+
     const ruinWoodTex = generateRuinWeatheredWoodTexture();
     const ruinStoneTex = generateRuinStoneTexture();
     const ruinAshTex = generateRuinAshGroundTexture();
@@ -4612,9 +4669,9 @@
     grassExclusionZones.push({ x: BASE_CENTER.x, z: BASE_CENTER.z, radius: BASE_CLEAR_RADIUS });
     grassExclusionZones.push({ x: ABANDONED_ZONE.x, z: ABANDONED_ZONE.z, radius: ABANDONED_ZONE.radius });
 
-    const grassCount = isTouchDevice ? 9000 : 32000;
-    const tallClusterCount = isTouchDevice ? 14 : 35;
-    const bladesPerCluster = isTouchDevice ? 280 : 600;
+    const grassCount = isTouchDevice ? 3500 : 32000;
+    const tallClusterCount = isTouchDevice ? 6 : 35;
+    const bladesPerCluster = isTouchDevice ? 120 : 600;
 
     grassField = buildGrassField(grassCount, MAP_SIZE * 1.9, grassExclusionZones);
     scene.add(grassField);
@@ -4843,8 +4900,10 @@
     moonBody = new THREE.Mesh(moonGeoCycle, moonMatCycle);
     scene.add(moonBody);
 
-    skyMessageSprite = createSkyMessageSprite('SOY NOEL GAMER');
-    scene.add(skyMessageSprite);
+    if (!isTouchDevice) {
+      skyMessageSprite = createSkyMessageSprite('SOY NOEL GAMER');
+      scene.add(skyMessageSprite);
+    }
 
     updateDayNightCycle(0);
   }
@@ -6820,7 +6879,7 @@
     }
   });
 
-  const MOVE_SPEED = 0.54;
+  const MOVE_SPEED = 0.78;
   const PLAYER_RADIUS = 0.35;
   let bobTime = 0;
   let isMoving = false;
@@ -8417,70 +8476,86 @@
     }
   });
 
-  weaponShotgunBtn.addEventListener('click', function () { selectWeapon('shotgun'); });
-  weaponAxeBtn.addEventListener('click', function () { selectWeapon('axe'); });
-  weaponMinigunBtn.addEventListener('click', function () { selectWeapon('minigun'); });
+  if (weaponShotgunBtn) weaponShotgunBtn.addEventListener('click', function () { selectWeapon('shotgun'); });
+  if (weaponAxeBtn) weaponAxeBtn.addEventListener('click', function () { selectWeapon('axe'); });
+  if (weaponMinigunBtn) weaponMinigunBtn.addEventListener('click', function () { selectWeapon('minigun'); });
   if (weaponPickaxeBtn) weaponPickaxeBtn.addEventListener('click', function () { selectWeapon('pickaxe'); });
   if (weaponShovelBtn) weaponShovelBtn.addEventListener('click', function () { selectWeapon('shovel'); });
   if (craftCloseBtn) craftCloseBtn.addEventListener('click', closeCraftPanel);
 
-  const gunWoodTexture = generateGunWoodTexture();
-  const woodGunMat = new THREE.MeshStandardMaterial({
-    map: gunWoodTexture,
-    roughness: 0.35,
-    metalness: 0.05
-  });
+  function initPlayerWeapons() {
+    let woodGunMat;
+    if (isTouchDevice) {
+      woodGunMat = new THREE.MeshStandardMaterial({ color: 0x6e4322, roughness: 0.35, metalness: 0.05 });
+    } else {
+      const gunWoodTexture = generateGunWoodTexture();
+      woodGunMat = new THREE.MeshStandardMaterial({
+        map: gunWoodTexture,
+        roughness: 0.35,
+        metalness: 0.05
+      });
+    }
 
-  gunGroup = buildPumpActionShotgun(woodGunMat);
-  gunGroup.position.copy(gunBasePosition);
-  gunGroup.rotation.y = gunBaseRotationY;
-  gunGroup.scale.setScalar(1.25);
+    gunGroup = buildPumpActionShotgun(woodGunMat);
+    gunGroup.position.copy(gunBasePosition);
+    gunGroup.rotation.y = gunBaseRotationY;
+    gunGroup.scale.setScalar(1.25);
 
-  muzzleFlashMat = new THREE.MeshBasicMaterial({
-    color: 0xffcc66,
-    transparent: true,
-    opacity: 0,
-    fog: false
-  });
-  muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 8), muzzleFlashMat);
-  muzzleFlash.rotation.x = -Math.PI / 2;
-  muzzleFlash.position.set(0, 0.05, -1.82);
-  gunGroup.add(muzzleFlash);
+    muzzleFlashMat = new THREE.MeshBasicMaterial({
+      color: 0xffcc66,
+      transparent: true,
+      opacity: 0,
+      fog: false
+    });
+    muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 8), muzzleFlashMat);
+    muzzleFlash.rotation.x = -Math.PI / 2;
+    muzzleFlash.position.set(0, 0.05, -1.82);
+    gunGroup.add(muzzleFlash);
 
-  const axeHandleTexture = generateAxeHandleTexture();
-  axeGroup = buildAxe(axeHandleTexture);
-  axeGroup.visible = false;
-  axeGroup.position.set(0.3, -0.3, -0.5);
-  axeGroup.rotation.set(0.1, -1.5, 0.3);
-  axeGroup.scale.setScalar(1.1);
+    const axeHandleTexture = isTouchDevice ? (function () {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#5e3a1f';
+      ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(canvas);
+    })() : generateAxeHandleTexture();
 
-  pickaxeGroup = buildPickaxe(axeHandleTexture);
-  pickaxeGroup.visible = false;
-  pickaxeGroup.position.set(0.3, -0.3, -0.5);
-  pickaxeGroup.rotation.set(0.1, -1.5, 0.3);
-  pickaxeGroup.scale.setScalar(1.1);
+    axeGroup = buildAxe(axeHandleTexture);
+    axeGroup.visible = false;
+    axeGroup.position.set(0.3, -0.3, -0.5);
+    axeGroup.rotation.set(0.1, -1.5, 0.3);
+    axeGroup.scale.setScalar(1.1);
 
-  shovelGroup = buildShovel(axeHandleTexture);
-  shovelGroup.visible = false;
-  shovelGroup.position.set(0.28, -0.28, -0.48);
-  shovelGroup.rotation.set(0.15, -1.4, 0.25);
-  shovelGroup.scale.setScalar(1.1);
+    pickaxeGroup = buildPickaxe(axeHandleTexture);
+    pickaxeGroup.visible = false;
+    pickaxeGroup.position.set(0.3, -0.3, -0.5);
+    pickaxeGroup.rotation.set(0.1, -1.5, 0.3);
+    pickaxeGroup.scale.setScalar(1.1);
 
-  minigunGroup = buildMinigun();
-  minigunGroup.visible = false;
-  minigunGroup.position.set(0.42, -0.48, -0.62);
-  minigunGroup.rotation.set(0.04, -0.12, 0);
-  minigunGroup.scale.setScalar(1.05);
+    shovelGroup = buildShovel(axeHandleTexture);
+    shovelGroup.visible = false;
+    shovelGroup.position.set(0.28, -0.28, -0.48);
+    shovelGroup.rotation.set(0.15, -1.4, 0.25);
+    shovelGroup.scale.setScalar(1.1);
 
-  initPlayerArmor();
-  camera.add(gunGroup);
-  camera.add(axeGroup);
-  camera.add(pickaxeGroup);
-  camera.add(shovelGroup);
-  camera.add(minigunGroup);
-  scene.add(camera);
-  selectWeapon('shotgun');
-  updateWeaponButtonsUI();
+    minigunGroup = buildMinigun();
+    minigunGroup.visible = false;
+    minigunGroup.position.set(0.42, -0.48, -0.62);
+    minigunGroup.rotation.set(0.04, -0.12, 0);
+    minigunGroup.scale.setScalar(1.05);
+
+    initPlayerArmor();
+    camera.add(gunGroup);
+    camera.add(axeGroup);
+    camera.add(pickaxeGroup);
+    camera.add(shovelGroup);
+    camera.add(minigunGroup);
+    scene.add(camera);
+    selectWeapon('shotgun');
+    updateWeaponButtonsUI();
+  }
 
   let spawnTimer = 0;
   let gameRunning = false;
@@ -8765,19 +8840,15 @@
   bindGameStartButton(document.getElementById('startBtn'));
   bindGameStartButton(document.getElementById('restartBtn'));
 
-  window.addEventListener('error', function (event) {
-    if (!loadingScreen || loadingScreen.style.display === 'none') return;
-    setLoadingText('Error: ' + (event.message || 'no se pudo cargar el juego') + '. Recarga la página.');
-  });
-
   async function bootGame() {
     try {
       if (typeof THREE === 'undefined') {
-        throw new Error('Three.js no cargó. Comprueba tu conexión a internet.');
+        throw new Error(
+          isFileProtocol
+            ? 'Three.js no cargó. Abre el juego con internet o usa: https://noelventura.github.io/SoyNoelGamer/reno-cazador.html?nombre=TOPU'
+            : 'Three.js no cargó. Comprueba tu conexión a internet.'
+        );
       }
-
-      setLoadingText('Cargando Reno Cazador...');
-      await yieldToMain();
 
       setLoadingText('Generando cielo...');
       await yieldToMain();
@@ -8830,7 +8901,7 @@
       await yieldFrame();
 
       const treePositions = [];
-      const TARGET_TREES = isTouchDevice ? 140 : 420;
+      const TARGET_TREES = isTouchDevice ? 60 : 420;
       const MAX_TREE_ATTEMPTS = 5000;
       const MIN_TREE_SPACING = 1.05;
       let treeAttempts = 0;
@@ -8867,7 +8938,9 @@
       setLoadingText('Colocando cabañas y ramas...');
       await yieldFrame();
       plantCabins();
-      plantAbandonedZone();
+      if (!isTouchDevice) {
+        plantAbandonedZone();
+      }
       plantResourceNodes();
       scatterFallenBranches(isTouchDevice ? 10 : 20);
       plantTreasureChests();
@@ -8876,11 +8949,16 @@
       await yieldFrame();
       await plantGrassField();
 
+      setLoadingText('Preparando armas...');
+      await yieldToMain();
+      initPlayerWeapons();
+
       initMinimap();
 
       loadingScreen.style.display = 'none';
       startScreen.classList.remove('hidden');
       startScreen.style.display = 'flex';
+      window.__renoLoadStep = 'listo';
       requestAnimationFrame(animate);
     } catch (err) {
       loadingScreen.style.display = 'flex';
@@ -8889,7 +8967,29 @@
     }
   }
 
-  bootGame();
+  window.addEventListener('error', function (event) {
+    if (loadingStatus) {
+      loadingStatus.textContent = 'Error: ' + (event.message || 'falló la carga') + '. Recarga la página.';
+    }
+  });
+
+  window.addEventListener('unhandledrejection', function (event) {
+    if (loadingStatus) {
+      loadingStatus.textContent = 'Error: ' + (event.reason && event.reason.message ? event.reason.message : 'falló la carga') + '. Recarga la página.';
+    }
+  });
+
+  setTimeout(function () {
+    setLoadingText('Iniciando motor 3D...');
+    if (isTouchDevice) {
+      setTimeout(function () {
+        if (loadingScreen && loadingScreen.style.display !== 'none' && window.__renoLoadStep !== 'listo') {
+          setLoadingText('Cargando en celular... puede tardar 1-2 min. No cierres la página.');
+        }
+      }, 15000);
+    }
+    bootGame();
+  }, 0);
 
 })();
 </script>
