@@ -601,15 +601,15 @@
 
     /* ── MATERIALES: centro-derecha, encima de botones acción ── */
     #materialsPanel {
-      position: fixed !important;
-      bottom: max(200px, calc(env(safe-area-inset-bottom) + 190px)) !important;
-      right: max(86px, calc(env(safe-area-inset-right) + 76px)) !important;
-      left: auto !important;
       top: auto !important;
-      min-width: 95px !important;
-      max-width: 118px !important;
-      padding: 4px 7px !important;
-      font-size: 9px !important;
+      bottom: max(240px, calc(env(safe-area-inset-bottom) + 230px)) !important;
+      right: max(8px, env(safe-area-inset-right)) !important;
+      left: auto !important;
+      font-size: 10px !important;
+      min-width: 100px !important;
+      padding: 6px 8px !important;
+      transform: none !important;
+      transform-origin: none !important;
     }
     #materialsPanel p.text-xs { font-size: 7px !important; margin-bottom: 3px !important; }
     #materialsPanel .grid { gap: 1px 4px !important; }
@@ -766,7 +766,6 @@
     #mobileLookPad { width: 53% !important; bottom: 178px !important; }
     .mobile-action-btn { width: 39px !important; height: 39px !important; font-size: 14px !important; }
     .mobile-fire-btn { width: 62px !important; height: 62px !important; font-size: 22px !important; }
-    #materialsPanel { right: max(72px, calc(env(safe-area-inset-right) + 62px)) !important; }
     .weapon-bar-mobile button { font-size: 7px !important; padding: 4px 5px !important; }
     #timer { font-size: 1.1rem !important; }
     #minimapCanvas { width: 84px !important; height: 84px !important; }
