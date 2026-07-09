@@ -996,6 +996,62 @@
     loadingStatus.textContent = 'Abriendo archivo local... (necesitas internet la primera vez)';
   }
 
+  // ============================================================
+  // CURSOR NUBE — declaración ANTES de cualquier listener
+  // ============================================================
+  let pointerLocked = false;
+
+  const IS_MOBILE_CURSOR = isTouchDevice ||
+    /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 0);
+
+  let cursorTargetX = 0;
+  let cursorTargetY = 0;
+  let cursorCurrentX = 0;
+  let cursorCurrentY = 0;
+  const CURSOR_LERP = 0.12;
+
+  (function () {
+    cursorTargetX = window.innerWidth / 2;
+    cursorTargetY = window.innerHeight / 2;
+    cursorCurrentX = window.innerWidth / 2;
+    cursorCurrentY = window.innerHeight / 2;
+  })();
+
+  function updateCloudCursorVisibility() {
+    if (!cloudCursor) return;
+    if (IS_MOBILE_CURSOR) {
+      cloudCursor.style.display = 'none';
+      return;
+    }
+    const shouldShow = !pointerLocked;
+    cloudCursor.style.display = shouldShow ? 'block' : 'none';
+  }
+
+  if (cloudCursor && !IS_MOBILE_CURSOR) {
+    cloudCursor.style.left = cursorCurrentX + 'px';
+    cloudCursor.style.top = cursorCurrentY + 'px';
+    cloudCursor.style.display = 'block';
+  } else if (cloudCursor) {
+    cloudCursor.style.display = 'none';
+  }
+  updateCloudCursorVisibility();
+
+  function updateCloudCursor() {
+    if (IS_MOBILE_CURSOR || !cloudCursor) return;
+
+    if (pointerLocked) {
+      cloudCursor.style.opacity = '0';
+      return;
+    }
+
+    cloudCursor.style.opacity = '1';
+    cursorCurrentX += (cursorTargetX - cursorCurrentX) * CURSOR_LERP;
+    cursorCurrentY += (cursorTargetY - cursorCurrentY) * CURSOR_LERP;
+    cloudCursor.style.left = cursorCurrentX + 'px';
+    cloudCursor.style.top = cursorCurrentY + 'px';
+  }
+
   function texSize(size) {
     return isTouchDevice ? Math.max(128, Math.floor(size * 0.5)) : size;
   }
@@ -6580,43 +6636,11 @@
 
   let yaw = 0, pitch = 0;
   const lookSensitivity = 0.0022;
-  let pointerLocked = false;
   const mobileMove = { x: 0, y: 0 };
   let mobileLookTouchId = null;
   let mobileLookLastX = 0;
   let mobileLookLastY = 0;
   const mobileLookSensitivity = 0.0042;
-  let cursorTargetX = window.innerWidth / 2;
-  let cursorTargetY = window.innerHeight / 2;
-  let cursorCurrentX = window.innerWidth / 2;
-  let cursorCurrentY = window.innerHeight / 2;
-  const CURSOR_LERP = 0.12;
-
-  function updateCloudCursorVisibility() {
-    if (!cloudCursor) return;
-    const shouldShow = !isTouchDevice && !pointerLocked;
-    cloudCursor.style.display = shouldShow ? 'block' : 'none';
-  }
-
-  if (cloudCursor) {
-    cloudCursor.style.left = cursorCurrentX + 'px';
-    cloudCursor.style.top = cursorCurrentY + 'px';
-  }
-  updateCloudCursorVisibility();
-
-  function updateCloudCursor() {
-    if (!cloudCursor || isTouchDevice) return;
-    if (pointerLocked) {
-      cloudCursor.style.opacity = '0';
-      return;
-    }
-
-    cloudCursor.style.opacity = '1';
-    cursorCurrentX += (cursorTargetX - cursorCurrentX) * CURSOR_LERP;
-    cursorCurrentY += (cursorTargetY - cursorCurrentY) * CURSOR_LERP;
-    cloudCursor.style.left = cursorCurrentX + 'px';
-    cloudCursor.style.top = cursorCurrentY + 'px';
-  }
 
   function setMobileControlsVisible(visible) {
     const el = document.getElementById('mobileControls');
