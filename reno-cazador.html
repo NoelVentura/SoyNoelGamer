@@ -924,6 +924,8 @@
 
 <script>
 (function () {
+  window.__renoScriptStart = 1;
+  try {
   const backBtn = document.getElementById('backBtn');
   const instruccionesLink = document.getElementById('instruccionesLink');
   const playerWelcome = document.getElementById('playerWelcome');
@@ -8967,6 +8969,23 @@
     }
   }
 
+  function scheduleBoot() {
+    try {
+      setLoadingText('Iniciando motor 3D...');
+      if (isTouchDevice) {
+        setTimeout(function () {
+          if (loadingScreen && loadingScreen.style.display !== 'none' && window.__renoLoadStep !== 'listo') {
+            setLoadingText('Cargando en celular... puede tardar 1-2 min. No cierres la página.');
+          }
+        }, 15000);
+      }
+      bootGame();
+    } catch (bootErr) {
+      setLoadingText('Error al iniciar: ' + bootErr.message);
+      console.error(bootErr);
+    }
+  }
+
   window.addEventListener('error', function (event) {
     if (loadingStatus) {
       loadingStatus.textContent = 'Error: ' + (event.message || 'falló la carga') + '. Recarga la página.';
@@ -8979,17 +8998,20 @@
     }
   });
 
-  setTimeout(function () {
-    setLoadingText('Iniciando motor 3D...');
-    if (isTouchDevice) {
-      setTimeout(function () {
-        if (loadingScreen && loadingScreen.style.display !== 'none' && window.__renoLoadStep !== 'listo') {
-          setLoadingText('Cargando en celular... puede tardar 1-2 min. No cierres la página.');
-        }
-      }, 15000);
+  if (document.readyState === 'complete') {
+    requestAnimationFrame(function () { requestAnimationFrame(scheduleBoot); });
+  } else {
+    window.addEventListener('load', function () {
+      requestAnimationFrame(function () { requestAnimationFrame(scheduleBoot); });
+    });
+  }
+
+  } catch (initErr) {
+    if (loadingStatus) {
+      loadingStatus.textContent = 'Error al cargar scripts: ' + initErr.message;
     }
-    bootGame();
-  }, 0);
+    console.error(initErr);
+  }
 
 })();
 </script>
