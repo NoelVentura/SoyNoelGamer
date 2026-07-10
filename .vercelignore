@@ -5,3 +5,6 @@ Tablas de Multiplicar/.astro
 Tablas de Multiplicar/dist
 eliminar-carpeta-ev2.bat
 **/*.bat
+tools/
+public/video/_originales/
+public/video/_compressed/

@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Angry Birds - Hyper Realistic Towers</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Bangers&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Bangers', cursive;
+    overflow: hidden;
+    background: #0a0a0a;
+    user-select: none;
+  }
+  
+  .angry-font { font-family: 'Luckiest Guy', cursive; }
+  
+  #gameCanvas {
+    display: block;
+    cursor: crosshair;
+  }
+  
+  .ui-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #7ec8e3, #4a90d9 40%, #2c5aa0 80%, #1a3a6e);
+    border: 3px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 0 #0e2a4a, inset 0 -3px 6px rgba(0,0,0,0.4), inset 0 3px 6px rgba(255,255,255,0.4), 0 0 20px rgba(74,144,217,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+  }
+  
+  .ui-btn::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    right: 10px;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
+    border-radius: 50%;
+  }
+  
+  .ui-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #0e2a4a, inset 0 -1px 3px rgba(0,0,0,0.4);
+  }
+  
+  .character-slot {
+    width: 70px;
+    height: 75px;
+    background: linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a0a0a0 100%);
+    border: 3px solid #666;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 #444, inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+  }
+  
+  .character-slot:hover { transform: scale(1.08); }
+  .character-slot.active {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255,215,0,0.8), 0 4px 0 #444, inset 0 2px 4px rgba(255,255,255,0.6);
+    transform: scale(1.1);
+  }
+  
+  .character-slot .count-badge {
+    position: absolute;
+    bottom: -10px;
+    background: linear-gradient(180deg, #333, #111);
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 2px solid #fff;
+    font-family: 'Bangers', cursive;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  
+  .score-display {
+    font-family: 'Luckiest Guy', cursive;
+    color: #ff9500;
+    text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 4px 8px rgba(0,0,0,0.5);
+    letter-spacing: 2px;
+  }
+  
+  .score-label {
+    font-family: 'Luckiest Guy', cursive;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000, 0 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: 3px;
+  }
+  
+  .modal-backdrop {
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+  }
+</style>
+</head>
+<body class="h-screen w-screen flex flex-col">
+
+<header class="absolute top-0 left-0 right-0 z-20 p-3 flex justify-between items-start pointer-events-none">
+  <div class="flex items-start gap-3 pointer-events-auto">
+    <button onclick="togglePause()" class="ui-btn">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">
+        <rect x="6" y="5" width="4" height="14" rx="1"/>
+        <rect x="14" y="5" width="4" height="14" rx="1"/>
+      </svg>
+    </button>
+    
+    <div class="flex gap-2" id="characterSlots"></div>
+  </div>
+  
+  <div class="text-right pointer-events-auto">
+    <div class="score-label text-2xl">SCORE</div>
+    <div class="score-display text-6xl" id="scoreDisplay">0</div>
+  </div>
+</header>
+
+<button class="ui-btn absolute left-4 top-24 z-20 pointer-events-auto" style="width:55px;height:55px;">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+  </svg>
+</button>
+
+<button class="ui-btn absolute left-4 bottom-4 z-20 pointer-events-auto" style="width:55px;height:55px;">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">
+    <circle cx="11" cy="11" r="7"/>
+    <path d="M21 21l-4.35-4.35"/>
+  </svg>
+</button>
+
+<canvas id="gameCanvas" class="absolute inset-0 w-full h-full"></canvas>
+
+<div id="pauseMenu" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center">
+  <div class="bg-gradient-to-b from-amber-100 to-amber-200 rounded-3xl p-8 border-4 border-amber-700 shadow-2xl max-w-sm w-full mx-4 text-center">
+    <h2 class="angry-font text-5xl text-amber-800 mb-6" style="text-shadow:3px 3px 0 rgba(0,0,0,0.2)">PAUSA</h2>
+    <div class="space-y-3">
+      <button onclick="togglePause()" class="w-full bg-gradient-to-b from-green-400 to-green-600 text-white py-3 rounded-xl font-bold text-xl border-b-4 border-green-800 hover:brightness-110 transition">▶ CONTINUAR</button>
+      <button onclick="resetLevel()" class="w-full bg-gradient-to-b from-blue-400 to-blue-600 text-white py-3 rounded-xl font-bold text-xl border-b-4 border-blue-800 hover:brightness-110 transition">🔄 REINICIAR</button>
+      <a href="./index.html" class="block w-full bg-gradient-to-b from-gray-400 to-gray-600 text-white py-3 rounded-xl font-bold text-xl border-b-4 border-gray-800 hover:brightness-110 transition">← MENÚ</a>
+    </div>
+  </div>
+</div>
+
+<div id="victoryModal" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center">
+  <div class="bg-gradient-to-b from-yellow-100 to-orange-200 rounded-3xl p-8 border-4 border-orange-600 shadow-2xl max-w-md w-full mx-4 text-center">
+    <div class="text-7xl mb-2">🏆</div>
+    <h2 class="angry-font text-5xl text-orange-600 mb-2" style="text-shadow:3px 3px 0 rgba(0,0,0,0.2)">¡NIVEL COMPLETADO!</h2>
+    <div class="bg-white/50 rounded-2xl p-4 my-4 border-2 border-orange-400">
+      <div class="score-label text-xl">PUNTUACIÓN</div>
+      <div class="score-display text-6xl" id="finalScore">0</div>
+    </div>
+    <button onclick="nextLevel()" class="w-full bg-gradient-to-b from-green-400 to-green-600 text-white py-3 rounded-xl font-bold text-xl border-b-4 border-green-800 hover:brightness-110 transition">SIGUIENTE NIVEL →</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let gameState = {
+  score: 0,
+  level: 1,
+  paused: false,
+  birds: [
+    { id: 1, name: 'Pink', type: 'pink', count: 6, selected: false, power: 1 },
+    { id: 2, name: 'Bomb', type: 'bomb', count: 2, selected: false, power: 2 },
+    { id: 3, name: 'Matilda', type: 'matilda', count: 3, selected: true, power: 1.5 },
+    { id: 4, name: 'Pig', type: 'pig', count: 10, selected: false, power: 1 },
+    { id: 5, name: 'Bubbles', type: 'bubbles', count: 10, selected: false, power: 1.2 },
+    { id: 6, name: 'Red', type: 'red', count: 10, selected: false, power: 1 }
+  ],
+  currentBird: null,
+  isDragging: false,
+  dragStart: { x: 0, y: 0 },
+  dragCurrent: { x: 0, y: 0 },
+  blocks: [],
+  pigs: [],
+  particles: [],
+  clouds: [],
+  apples: [],
+  time: 0
+};
+
+const GRAVITY = 0.45;
+const AIR_RESISTANCE = 0.995;
+const GROUND_FRICTION = 0.85;
+const BOUNCE_DAMPING = 0.6;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  initClouds();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function initClouds() {
+  gameState.clouds = [];
+  for (let i = 0; i < 8; i++) {
+    gameState.clouds.push({
+      x: Math.random() * canvas.width,
+      y: 30 + Math.random() * 120,
+      size: 50 + Math.random() * 60,
+      speed: 0.1 + Math.random() * 0.15,
+      opacity: 0.7 + Math.random() * 0.3
+    });
+  }
+}
+
+class Vector {
+  constructor(x, y) { this.x = x; this.y = y; }
+  add(v) { return new Vector(this.x + v.x, this.y + v.y); }
+  sub(v) { return new Vector(this.x - v.x, this.y - v.y); }
+  mult(n) { return new Vector(this.x * n, this.y * n); }
+  mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+  normalize() {
+    const m = this.mag();
+    return m === 0 ? new Vector(0, 0) : new Vector(this.x / m, this.y / m);
+  }
+  dist(v) { return Math.sqrt((this.x - v.x)**2 + (this.y - v.y)**2); }
+}
+
+class Bird {
+  constructor(x, y, type) {
+    this.pos = new Vector(x, y);
+    this.vel = new Vector(0, 0);
+    this.type = type;
+    this.launched = false;
+    this.stopped = false;
+    this.rotation = 0;
+    this.angularVel = 0;
+    this.trail = [];
+    this.radius = type === 'terence' ? 35 : type === 'bomb' ? 28 : 22;
+  }
+
+  update() {
+    if (!this.launched || this.stopped) return;
+    
+    this.trail.push({ x: this.pos.x, y: this.pos.y, alpha: 1 });
+    if (this.trail.length > 15) this.trail.shift();
+    this.trail.forEach(t => t.alpha -= 0.07);
+    
+    this.vel.y += GRAVITY;
+    this.vel = this.vel.mult(AIR_RESISTANCE);
+    this.pos = this.pos.add(this.vel);
+    this.rotation += this.vel.x * 0.04;
+
+    const groundY = canvas.height - 70;
+    if (this.pos.y + this.radius > groundY) {
+      this.pos.y = groundY - this.radius;
+      this.vel.y *= -BOUNCE_DAMPING;
+      this.vel.x *= GROUND_FRICTION;
+      if (Math.abs(this.vel.y) < 0.5 && Math.abs(this.vel.x) < 0.3) this.stopped = true;
+    }
+
+    if (this.pos.x - this.radius < 0) { this.pos.x = this.radius; this.vel.x *= -BOUNCE_DAMPING; }
+    if (this.pos.x + this.radius > canvas.width) { this.pos.x = canvas.width - this.radius; this.vel.x *= -BOUNCE_DAMPING; }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.pos.x, this.pos.y);
+    ctx.rotate(this.rotation);
+    
+    this.trail.forEach((t, i) => {
+      ctx.globalAlpha = t.alpha * 0.3;
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius * (i/15));
+      grad.addColorStop(0, 'rgba(255,255,255,0.8)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(t.x - this.pos.x, t.y - this.pos.y, this.radius * (i/15), 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 5;
+    
+    this.drawBirdBody();
+    ctx.restore();
+  }
+
+  drawBirdBody() {
+    const r = this.radius;
+    
+    if (this.type === 'red') {
+      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+      grad.addColorStop(0, '#ff8a8a');
+      grad.addColorStop(0.3, '#ff4d4d');
+      grad.addColorStop(0.7, '#e63946');
+      grad.addColorStop(1, '#9d0208');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.arc(-r*0.3, -r*0.3, r*0.25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const bellyGrad = ctx.createRadialGradient(0, r*0.3, 0, 0, r*0.3, r*0.5);
+      bellyGrad.addColorStop(0, '#fff5f5');
+      bellyGrad.addColorStop(1, '#fde2e4');
+      ctx.fillStyle = bellyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, r*0.3, r*0.5, r*0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.2, r*0.28, 0, Math.PI * 2);
+      ctx.arc(-r*0.25, -r*0.2, r*0.28, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.15, r*0.28, 0, Math.PI);
+      ctx.arc(-r*0.25, -r*0.15, r*0.28, 0, Math.PI);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(r*0.3, -r*0.2, r*0.12, 0, Math.PI * 2);
+      ctx.arc(-r*0.2, -r*0.2, r*0.12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(r*0.32, -r*0.22, r*0.04, 0, Math.PI * 2);
+      ctx.arc(-r*0.18, -r*0.22, r*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const browGrad = ctx.createLinearGradient(0, -r*0.55, 0, -r*0.35);
+      browGrad.addColorStop(0, '#000');
+      browGrad.addColorStop(1, '#333');
+      ctx.strokeStyle = browGrad;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-r*0.5, -r*0.55);
+      ctx.lineTo(-r*0.05, -r*0.35);
+      ctx.moveTo(r*0.5, -r*0.55);
+      ctx.lineTo(r*0.05, -r*0.35);
+      ctx.stroke();
+      
+      const beakGrad = ctx.createLinearGradient(0, 0, 0, r*0.35);
+      beakGrad.addColorStop(0, '#ffb347');
+      beakGrad.addColorStop(0.5, '#f4a261');
+      beakGrad.addColorStop(1, '#e76f51');
+      ctx.fillStyle = beakGrad;
+      ctx.beginPath();
+      ctx.moveTo(-r*0.2, r*0.05);
+      ctx.lineTo(r*0.3, r*0.1);
+      ctx.lineTo(-r*0.1, r*0.35);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.moveTo(-r*0.15, r*0.08);
+      ctx.lineTo(r*0.1, r*0.1);
+      ctx.lineTo(-r*0.05, r*0.15);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = '#1d3557';
+      ctx.beginPath();
+      ctx.moveTo(-r*0.7, -r*0.2);
+      ctx.lineTo(-r*1.3, -r*0.5);
+      ctx.lineTo(-r*1.2, -r*0.1);
+      ctx.lineTo(-r*1.4, r*0.1);
+      ctx.lineTo(-r*0.7, r*0.1);
+      ctx.closePath();
+      ctx.fill();
+      
+    } else if (this.type === 'bomb') {
+      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+      grad.addColorStop(0, '#6c757d');
+      grad.addColorStop(0.3, '#495057');
+      grad.addColorStop(0.7, '#212529');
+      grad.addColorStop(1, '#000');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.beginPath();
+      ctx.arc(-r*0.3, -r*0.3, r*0.3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const bellyGrad = ctx.createRadialGradient(0, r*0.3, 0, 0, r*0.3, r*0.45);
+      bellyGrad.addColorStop(0, '#fff');
+      bellyGrad.addColorStop(1, '#e9ecef');
+      ctx.fillStyle = bellyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, r*0.3, r*0.45, r*0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(r*0.2, -r*0.15, r*0.25, 0, Math.PI * 2);
+      ctx.arc(-r*0.2, -r*0.15, r*0.25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.15, r*0.1, 0, Math.PI * 2);
+      ctx.arc(-r*0.15, -r*0.15, r*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.strokeStyle = '#6c757d';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.quadraticCurveTo(r*0.3, -r*1.3, r*0.2, -r*1.4);
+      ctx.stroke();
+      
+      ctx.shadowColor = '#ffd60a';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ffd60a';
+      ctx.beginPath();
+      ctx.arc(r*0.2, -r*1.4, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+    } else if (this.type === 'matilda') {
+      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+      grad.addColorStop(0, '#fff');
+      grad.addColorStop(0.5, '#f8f9fa');
+      grad.addColorStop(0.8, '#e9ecef');
+      grad.addColorStop(1, '#dee2e6');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath();
+      ctx.arc(-r*0.3, -r*0.3, r*0.35, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const wingGrad = ctx.createLinearGradient(-r*0.5, -r*0.2, -r*0.5, r*0.4);
+      wingGrad.addColorStop(0, '#343a40');
+      wingGrad.addColorStop(1, '#212529');
+      ctx.fillStyle = wingGrad;
+      ctx.beginPath();
+      ctx.ellipse(-r*0.5, r*0.2, r*0.3, r*0.4, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(r*0.2, -r*0.2, r*0.25, 0, Math.PI * 2);
+      ctx.arc(-r*0.2, -r*0.2, r*0.25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.2, r*0.1, 0, Math.PI * 2);
+      ctx.arc(-r*0.15, -r*0.2, r*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const beakGrad = ctx.createLinearGradient(0, 0, 0, r*0.3);
+      beakGrad.addColorStop(0, '#ffa500');
+      beakGrad.addColorStop(1, '#f77f00');
+      ctx.fillStyle = beakGrad;
+      ctx.beginPath();
+      ctx.moveTo(-r*0.15, r*0.05);
+      ctx.lineTo(r*0.25, r*0.1);
+      ctx.lineTo(-r*0.1, r*0.3);
+      ctx.closePath();
+      ctx.fill();
+      
+    } else if (this.type === 'pink') {
+      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+      grad.addColorStop(0, '#ffb3d9');
+      grad.addColorStop(0.5, '#ff69b4');
+      grad.addColorStop(1, '#c71585');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.arc(-r*0.3, -r*0.3, r*0.3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.2, r*0.25, 0, Math.PI * 2);
+      ctx.arc(-r*0.25, -r*0.2, r*0.25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(r*0.3, -r*0.2, r*0.1, 0, Math.PI * 2);
+      ctx.arc(-r*0.2, -r*0.2, r*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ffa500';
+      ctx.beginPath();
+      ctx.moveTo(-r*0.15, r*0.05);
+      ctx.lineTo(r*0.25, r*0.1);
+      ctx.lineTo(-r*0.1, r*0.3);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+class Block {
+  constructor(x, y, width, height, type) {
+    this.pos = new Vector(x, y);
+    this.width = width;
+    this.height = height;
+    this.type = type;
+    this.health = type === 'stone' ? 120 : type === 'wood' ? 70 : type === 'ice' ? 35 : 50;
+    this.maxHealth = this.health;
+    this.vel = new Vector(0, 0);
+    this.rotation = 0;
+    this.angularVel = 0;
+    this.awake = false;
+  }
+
+  update() {
+    if (this.health <= 0) return;
+    if (!this.awake) return;
+    this.vel.y += GRAVITY * 0.4;
+    this.vel = this.vel.mult(0.99);
+    this.pos = this.pos.add(this.vel);
+    this.rotation += this.angularVel;
+    this.angularVel *= 0.97;
+
+    const groundY = canvas.height - 70;
+    if (this.pos.y + this.height/2 > groundY) {
+      this.pos.y = groundY - this.height/2;
+      this.vel.y *= -0.4;
+      this.vel.x *= 0.85;
+      this.angularVel *= 0.8;
+      if (Math.abs(this.vel.y) < 0.4 && Math.abs(this.vel.x) < 0.3) {
+        this.vel = new Vector(0, 0);
+        this.angularVel *= 0.5;
+      }
+    }
+
+    // Apoyar sobre otros bloques
+    gameState.blocks.forEach(other => {
+      if (other === this || other.health <= 0) return;
+      const myBottom = this.pos.y + this.height / 2;
+      const otherTop = other.pos.y - other.height / 2;
+      const overlapX = Math.min(this.pos.x + this.width / 2, other.pos.x + other.width / 2) -
+        Math.max(this.pos.x - this.width / 2, other.pos.x - other.width / 2);
+      if (overlapX > 4 && myBottom >= otherTop && myBottom <= otherTop + 12 && this.vel.y >= 0) {
+        this.pos.y = otherTop - this.height / 2;
+        this.vel.y = 0;
+        this.vel.x *= 0.85;
+      }
+    });
+  }
+
+  draw() {
+    if (this.health <= 0) return;
+    ctx.save();
+    ctx.translate(this.pos.x, this.pos.y);
+    ctx.rotate(this.rotation);
+    
+    const w = this.width, h = this.height;
+    const damageRatio = 1 - (this.health / this.maxHealth);
+    
+    if (this.type === 'wood') {
+      const baseGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+      baseGrad.addColorStop(0, '#d4a373');
+      baseGrad.addColorStop(0.3, '#c4956a');
+      baseGrad.addColorStop(0.7, '#b08968');
+      baseGrad.addColorStop(1, '#9c6644');
+      ctx.fillStyle = baseGrad;
+      ctx.fillRect(-w/2, -h/2, w, h);
+      
+      ctx.strokeStyle = 'rgba(139, 90, 43, 0.3)';
+      ctx.lineWidth = 1;
+      for (let i = -w/2 + 5; i < w/2; i += 8) {
+        ctx.beginPath();
+        ctx.moveTo(i, -h/2);
+        const curve = Math.sin(i * 0.1) * 2;
+        ctx.quadraticCurveTo(i + curve, 0, i, h/2);
+        ctx.stroke();
+      }
+      
+      ctx.fillStyle = 'rgba(101, 67, 33, 0.4)';
+      ctx.beginPath();
+      ctx.arc(w*0.2, h*0.1, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(w/2 - 3, -h/2, 3, h);
+      ctx.fillRect(-w/2, h/2 - 3, w, 3);
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fillRect(-w/2, -h/2, w, h/4);
+      
+      ctx.strokeStyle = '#6f4e37';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-w/2, -h/2, w, h);
+      
+    } else if (this.type === 'stone') {
+      const baseGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+      baseGrad.addColorStop(0, '#c0c0c0');
+      baseGrad.addColorStop(0.3, '#a0a0a0');
+      baseGrad.addColorStop(0.7, '#808080');
+      baseGrad.addColorStop(1, '#606060');
+      ctx.fillStyle = baseGrad;
+      ctx.fillRect(-w/2, -h/2, w, h);
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      for (let i = 0; i < 20; i++) {
+        const nx = (Math.random() - 0.5) * w;
+        const ny = (Math.random() - 0.5) * h;
+        ctx.fillRect(nx, ny, 2, 2);
+      }
+      
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-w*0.3, -h/2);
+      ctx.lineTo(-w*0.2, 0);
+      ctx.lineTo(-w*0.3, h/2);
+      ctx.stroke();
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(w/2 - 4, -h/2, 4, h);
+      ctx.fillRect(-w/2, h/2 - 4, w, 4);
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fillRect(-w/2, -h/2, w, h/5);
+      
+      ctx.strokeStyle = '#404040';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-w/2, -h/2, w, h);
+      
+    } else if (this.type === 'ice') {
+      const baseGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+      baseGrad.addColorStop(0, 'rgba(220, 240, 255, 0.95)');
+      baseGrad.addColorStop(0.3, 'rgba(180, 220, 250, 0.9)');
+      baseGrad.addColorStop(0.7, 'rgba(140, 200, 240, 0.85)');
+      baseGrad.addColorStop(1, 'rgba(100, 180, 230, 0.9)');
+      ctx.fillStyle = baseGrad;
+      ctx.fillRect(-w/2, -h/2, w, h);
+      
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const cx = (Math.random() - 0.5) * w * 0.8;
+        const cy = (Math.random() - 0.5) * h * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(cx - 5, cy);
+        ctx.lineTo(cx + 5, cy);
+        ctx.moveTo(cx, cy - 5);
+        ctx.lineTo(cx, cy + 5);
+        ctx.stroke();
+      }
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.moveTo(-w/2 + 3, -h/2 + 3);
+      ctx.lineTo(w/3, -h/2 + 3);
+      ctx.lineTo(-w/2 + 3, h/3);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(200, 230, 255, 0.3)';
+      ctx.fillRect(-w/2 + 2, -h/2 + 2, w - 4, h - 4);
+      
+      ctx.strokeStyle = '#1d3557';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-w/2, -h/2, w, h);
+    }
+    
+    if (damageRatio > 0.3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const cracks = Math.floor(damageRatio * 5);
+      for (let i = 0; i < cracks; i++) {
+        const sx = (Math.random() - 0.5) * w * 0.7;
+        const sy = (Math.random() - 0.5) * h * 0.7;
+        ctx.moveTo(sx, sy);
+        for (let j = 0; j < 3; j++) {
+          ctx.lineTo(sx + (Math.random()-0.5)*15, sy + (Math.random()-0.5)*15);
+        }
+      }
+      ctx.stroke();
+    }
+    
+    ctx.restore();
+  }
+
+  hit(damage) {
+    this.awake = true;
+    this.health -= damage;
+    wakeNearby(this.pos.x, this.pos.y, 140);
+    if (this.health <= 0) {
+      createExplosion(this.pos.x, this.pos.y, this.type, 15);
+      gameState.score += this.type === 'stone' ? 500 : this.type === 'wood' ? 300 : this.type === 'ice' ? 200 : 100;
+      updateScore();
+      wakeNearby(this.pos.x, this.pos.y, 180);
+    }
+  }
+}
+
+class Pig {
+  constructor(x, y, size = 'normal') {
+    this.pos = new Vector(x, y);
+    this.radius = size === 'king' ? 35 : size === 'small' ? 18 : 26;
+    this.health = size === 'king' ? 80 : size === 'small' ? 25 : 50;
+    this.maxHealth = this.health;
+    this.vel = new Vector(0, 0);
+    this.size = size;
+    this.wobble = Math.random() * Math.PI * 2;
+    this.awake = false;
+  }
+
+  update() {
+    this.wobble += 0.08;
+    if (!this.awake) return;
+    this.vel.y += GRAVITY * 0.3;
+    this.vel = this.vel.mult(0.97);
+    this.pos = this.pos.add(this.vel);
+
+    const groundY = canvas.height - 70;
+    if (this.pos.y + this.radius > groundY) {
+      this.pos.y = groundY - this.radius;
+      this.vel.y *= -0.3;
+      this.vel.x *= 0.9;
+    }
+
+    gameState.blocks.forEach(b => {
+      if (b.health <= 0) return;
+      const pigBottom = this.pos.y + this.radius;
+      const top = b.pos.y - b.height / 2;
+      const left = b.pos.x - b.width / 2;
+      const right = b.pos.x + b.width / 2;
+      if (this.pos.x > left && this.pos.x < right && pigBottom >= top && pigBottom <= top + 14 && this.vel.y >= 0) {
+        this.pos.y = top - this.radius;
+        this.vel.y = 0;
+        this.vel.x *= 0.9;
+      }
+    });
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.pos.x, this.pos.y);
+    const r = this.radius;
+    const healthRatio = this.health / this.maxHealth;
+    
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetY = 5;
+    
+    const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+    grad.addColorStop(0, '#a8e6a3');
+    grad.addColorStop(0.4, '#7dd87a');
+    grad.addColorStop(0.7, '#52b788');
+    grad.addColorStop(1, '#1b4332');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(-r*0.3, -r*0.3, r*0.25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#52b788';
+    ctx.beginPath();
+    ctx.arc(-r*0.7, -r*0.7, r*0.25, 0, Math.PI * 2);
+    ctx.arc(r*0.7, -r*0.7, r*0.25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.arc(-r*0.7, -r*0.65, r*0.15, 0, Math.PI * 2);
+    ctx.arc(r*0.7, -r*0.65, r*0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const snoutGrad = ctx.createRadialGradient(0, r*0.15, 0, 0, r*0.15, r*0.45);
+    snoutGrad.addColorStop(0, '#95d5b2');
+    snoutGrad.addColorStop(0.7, '#74c69d');
+    snoutGrad.addColorStop(1, '#52b788');
+    ctx.fillStyle = snoutGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, r*0.15, r*0.45, r*0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(-r*0.1, r*0.1, r*0.2, r*0.15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#081c15';
+    ctx.beginPath();
+    ctx.arc(-r*0.15, r*0.15, r*0.08, 0, Math.PI * 2);
+    ctx.arc(r*0.15, r*0.15, r*0.08, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.arc(-r*0.17, r*0.13, r*0.03, 0, Math.PI * 2);
+    ctx.arc(r*0.13, r*0.13, r*0.03, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-r*0.35, -r*0.25, r*0.22, 0, Math.PI * 2);
+    ctx.arc(r*0.35, -r*0.25, r*0.22, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath();
+    ctx.arc(-r*0.35, -r*0.2, r*0.22, 0, Math.PI);
+    ctx.arc(r*0.35, -r*0.2, r*0.22, 0, Math.PI);
+    ctx.fill();
+    
+    const pupilOff = healthRatio < 0.5 ? Math.sin(this.wobble * 2) * 2 : Math.sin(this.wobble);
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(-r*0.3 + pupilOff, -r*0.25, r*0.1, 0, Math.PI * 2);
+    ctx.arc(r*0.4 + pupilOff, -r*0.25, r*0.1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-r*0.28 + pupilOff, -r*0.27, r*0.03, 0, Math.PI * 2);
+    ctx.arc(r*0.42 + pupilOff, -r*0.27, r*0.03, 0, Math.PI * 2);
+    ctx.fill();
+    
+    if (this.size === 'king') {
+      const crownGrad = ctx.createLinearGradient(0, -r*1.15, 0, -r*0.85);
+      crownGrad.addColorStop(0, '#ffd700');
+      crownGrad.addColorStop(0.5, '#ffb700');
+      crownGrad.addColorStop(1, '#cc8800');
+      ctx.fillStyle = crownGrad;
+      ctx.beginPath();
+      ctx.moveTo(-r*0.5, -r*0.85);
+      ctx.lineTo(-r*0.4, -r*1.1);
+      ctx.lineTo(-r*0.2, -r*0.95);
+      ctx.lineTo(0, -r*1.15);
+      ctx.lineTo(r*0.2, -r*0.95);
+      ctx.lineTo(r*0.4, -r*1.1);
+      ctx.lineTo(r*0.5, -r*0.85);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(0, -r*1.0, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.arc(-r*0.3, -r*1.0, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    if (healthRatio < 1) {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(-r*0.8, -r*1.3, r*1.6, 5);
+      const healthGrad = ctx.createLinearGradient(-r*0.8, 0, r*0.8 * healthRatio, 0);
+      healthGrad.addColorStop(0, healthRatio > 0.5 ? '#4ade80' : '#ef4444');
+      healthGrad.addColorStop(1, healthRatio > 0.5 ? '#22c55e' : '#dc2626');
+      ctx.fillStyle = healthGrad;
+      ctx.fillRect(-r*0.8, -r*1.3, r*1.6 * healthRatio, 5);
+    }
+    
+    ctx.restore();
+  }
+
+  hit(damage) {
+    this.awake = true;
+    this.health -= damage;
+    if (this.health <= 0) {
+      createExplosion(this.pos.x, this.pos.y, 'pig', 20);
+      gameState.score += this.size === 'king' ? 10000 : this.size === 'small' ? 3000 : 5000;
+      updateScore();
+      gameState.pigs = gameState.pigs.filter(p => p !== this);
+      checkVictory();
+    }
+  }
+}
+
+function wakeNearby(x, y, radius) {
+  gameState.blocks.forEach(b => {
+    if (b.health <= 0) return;
+    const dx = b.pos.x - x;
+    const dy = b.pos.y - y;
+    if (dx * dx + dy * dy < radius * radius) b.awake = true;
+  });
+  gameState.pigs.forEach(p => {
+    const dx = p.pos.x - x;
+    const dy = p.pos.y - y;
+    if (dx * dx + dy * dy < radius * radius) p.awake = true;
+  });
+}
+
+class Apple {
+  constructor(x, y) {
+    this.pos = new Vector(x, y);
+    this.radius = 12;
+    this.vel = new Vector(0, 0);
+    this.attached = true;
+    this.ropeLength = 30 + Math.random() * 20;
+    this.ropeAnchor = new Vector(x, y - this.ropeLength);
+    this.angle = 0;
+  }
+
+  update() {
+    if (this.attached) {
+      this.angle += Math.sin(Date.now() * 0.002 + this.pos.x) * 0.01;
+      this.pos.x = this.ropeAnchor.x + Math.sin(this.angle) * this.ropeLength;
+      this.pos.y = this.ropeAnchor.y + Math.cos(this.angle) * this.ropeLength;
+    } else {
+      this.vel.y += GRAVITY;
+      this.vel = this.vel.mult(0.99);
+      this.pos = this.pos.add(this.vel);
+      const groundY = canvas.height - 70;
+      if (this.pos.y + this.radius > groundY) {
+        this.pos.y = groundY - this.radius;
+        this.vel.y *= -0.3;
+        this.vel.x *= 0.8;
+      }
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.pos.x, this.pos.y);
+    
+    const grad = ctx.createRadialGradient(-3, -3, 0, 0, 0, this.radius);
+    grad.addColorStop(0, '#ff6b6b');
+    grad.addColorStop(0.3, '#ff4d4d');
+    grad.addColorStop(0.7, '#dc2626');
+    grad.addColorStop(1, '#991b1b');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath();
+    ctx.arc(-4, -4, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.arc(3, 3, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = '#4a2c17';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.radius);
+    ctx.quadraticCurveTo(2, -this.radius - 4, 2, -this.radius - 5);
+    ctx.stroke();
+    
+    const leafGrad = ctx.createLinearGradient(0, 0, 8, -3);
+    leafGrad.addColorStop(0, '#74c69d');
+    leafGrad.addColorStop(1, '#52b788');
+    ctx.fillStyle = leafGrad;
+    ctx.beginPath();
+    ctx.ellipse(4, -this.radius - 3, 4, 2, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    
+    if (this.attached) {
+      ctx.strokeStyle = '#6f4e37';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 2]);
+      ctx.beginPath();
+      ctx.moveTo(this.ropeAnchor.x, this.ropeAnchor.y);
+      ctx.lineTo(this.pos.x, this.pos.y - this.radius);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+class Particle {
+  constructor(x, y, type) {
+    this.pos = new Vector(x, y);
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 8 + 2;
+    this.vel = new Vector(Math.cos(angle) * speed, Math.sin(angle) * speed - 3);
+    this.life = 1;
+    this.decay = 0.015 + Math.random() * 0.01;
+    this.type = type;
+    this.size = Math.random() * 10 + 5;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.3;
+    
+    const colors = {
+      'wood': ['#d4a373', '#b08968', '#9c6644', '#6f4e37'],
+      'stone': ['#c0c0c0', '#a0a0a0', '#808080', '#606060'],
+      'ice': ['#dcf0ff', '#b4dcfa', '#8cc8f0', '#64b4e6'],
+      'pig': ['#a8e6a3', '#7dd87a', '#52b788', '#1b4332'],
+      'dust': ['#d5c9a1', '#b8a88a', '#9a8b70'],
+      'apple': ['#ff6b6b', '#ff4d4d', '#dc2626', '#991b1b']
+    };
+    this.color = colors[type][Math.floor(Math.random() * colors[type].length)];
+    this.gravity = 0.3;
+  }
+
+  update() {
+    this.vel.y += this.gravity;
+    this.vel = this.vel.mult(0.98);
+    this.pos = this.pos.add(this.vel);
+    this.life -= this.decay;
+    this.rotation += this.rotSpeed;
+    this.size *= 0.99;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.translate(this.pos.x, this.pos.y);
+    ctx.rotate(this.rotation);
+    
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetY = 2;
+    
+    ctx.fillStyle = this.color;
+    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(-this.size/2, -this.size/2, this.size/2, this.size/2);
+    
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function createExplosion(x, y, type, count) {
+  for (let i = 0; i < count; i++) {
+    gameState.particles.push(new Particle(x, y, type));
+  }
+}
+
+function initLevel(level) {
+  gameState.blocks = [];
+  gameState.pigs = [];
+  gameState.apples = [];
+  gameState.particles = [];
+  gameState.launchedBirds = [];
+  gameState.currentBird = null;
+  
+  const groundY = canvas.height - 70;
+  const startX = canvas.width * 0.72;
+  
+  if (level === 1) {
+    // TORRE 1 - Torre alta de madera (5 pisos)
+    const tower1X = startX;
+    const floorHeight = 80;
+    
+    // Base sólida
+    gameState.blocks.push(new Block(tower1X, groundY - 20, 120, 25, 'stone'));
+    
+    // Piso 1
+    gameState.blocks.push(new Block(tower1X - 50, groundY - 60, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X + 50, groundY - 60, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X, groundY - 100, 120, 20, 'wood'));
+    
+    // Piso 2
+    gameState.blocks.push(new Block(tower1X - 40, groundY - 140, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X + 40, groundY - 140, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X, groundY - 180, 100, 20, 'wood'));
+    
+    // Piso 3
+    gameState.blocks.push(new Block(tower1X - 30, groundY - 220, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X + 30, groundY - 220, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X, groundY - 260, 80, 20, 'wood'));
+    
+    // Piso 4
+    gameState.blocks.push(new Block(tower1X - 20, groundY - 300, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X + 20, groundY - 300, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower1X, groundY - 340, 60, 20, 'wood'));
+    
+    // Techo
+    gameState.blocks.push(new Block(tower1X, groundY - 370, 80, 20, 'wood'));
+    
+    // Cerdos en la torre
+    gameState.pigs.push(new Pig(tower1X, groundY - 120, 'normal'));
+    gameState.pigs.push(new Pig(tower1X, groundY - 200, 'normal'));
+    gameState.pigs.push(new Pig(tower1X, groundY - 280, 'small'));
+    gameState.pigs.push(new Pig(tower1X, groundY - 360, 'king'));
+    
+    // TORRE 2 - Torre de piedra (4 pisos)
+    const tower2X = startX + 200;
+    
+    gameState.blocks.push(new Block(tower2X, groundY - 20, 100, 25, 'stone'));
+    
+    // Piso 1
+    gameState.blocks.push(new Block(tower2X - 40, groundY - 60, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X + 40, groundY - 60, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X, groundY - 100, 100, 20, 'stone'));
+    
+    // Piso 2
+    gameState.blocks.push(new Block(tower2X - 35, groundY - 140, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X + 35, groundY - 140, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X, groundY - 180, 90, 20, 'stone'));
+    
+    // Piso 3
+    gameState.blocks.push(new Block(tower2X - 30, groundY - 220, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X + 30, groundY - 220, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X, groundY - 260, 80, 20, 'stone'));
+    
+    // Piso 4
+    gameState.blocks.push(new Block(tower2X - 25, groundY - 300, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X + 25, groundY - 300, 20, 80, 'stone'));
+    gameState.blocks.push(new Block(tower2X, groundY - 340, 70, 20, 'stone'));
+    
+    gameState.pigs.push(new Pig(tower2X, groundY - 120, 'normal'));
+    gameState.pigs.push(new Pig(tower2X, groundY - 200, 'normal'));
+    gameState.pigs.push(new Pig(tower2X, groundY - 280, 'king'));
+    
+    // TORRE 3 - Torre mixta con hielo (3 pisos)
+    const tower3X = startX - 200;
+    
+    gameState.blocks.push(new Block(tower3X, groundY - 20, 90, 25, 'stone'));
+    
+    // Piso 1 - madera
+    gameState.blocks.push(new Block(tower3X - 35, groundY - 60, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower3X + 35, groundY - 60, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower3X, groundY - 100, 90, 20, 'wood'));
+    
+    // Piso 2 - hielo
+    gameState.blocks.push(new Block(tower3X - 30, groundY - 140, 20, 80, 'ice'));
+    gameState.blocks.push(new Block(tower3X + 30, groundY - 140, 20, 80, 'ice'));
+    gameState.blocks.push(new Block(tower3X, groundY - 180, 80, 20, 'ice'));
+    
+    // Piso 3 - madera
+    gameState.blocks.push(new Block(tower3X - 25, groundY - 220, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower3X + 25, groundY - 220, 20, 80, 'wood'));
+    gameState.blocks.push(new Block(tower3X, groundY - 260, 70, 20, 'wood'));
+    
+    gameState.pigs.push(new Pig(tower3X, groundY - 120, 'normal'));
+    gameState.pigs.push(new Pig(tower3X, groundY - 200, 'small'));
+    gameState.pigs.push(new Pig(tower3X, groundY - 280, 'normal'));
+    
+    // Manzanas colgantes
+    for (let i = 0; i < 6; i++) {
+      gameState.apples.push(new Apple(startX - 150 + i * 50, groundY - 250));
+    }
+    
+  } else if (level === 2) {
+    // Nivel 2 - Torres aún más complejas
+    const tower1X = startX;
+    
+    // Mega torre de 6 pisos
+    gameState.blocks.push(new Block(tower1X, groundY - 20, 140, 25, 'stone'));
+    
+    for (let floor = 0; floor < 6; floor++) {
+      const y = groundY - 60 - floor * 70;
+      const width = 120 - floor * 15;
+      const pillarWidth = 20 - floor * 2;
+      
+      gameState.blocks.push(new Block(tower1X - width/2 + 10, y, pillarWidth, 70, floor % 2 === 0 ? 'wood' : 'stone'));
+      gameState.blocks.push(new Block(tower1X + width/2 - 10, y, pillarWidth, 70, floor % 2 === 0 ? 'wood' : 'stone'));
+      gameState.blocks.push(new Block(tower1X, y - 35, width, 20, 'wood'));
+      
+      if (floor < 5) {
+        gameState.pigs.push(new Pig(tower1X, y - 50, floor === 4 ? 'king' : 'normal'));
+      }
+    }
+    
+    // Torre secundaria
+    const tower2X = startX + 250;
+    gameState.blocks.push(new Block(tower2X, groundY - 20, 80, 25, 'stone'));
+    
+    for (let floor = 0; floor < 4; floor++) {
+      const y = groundY - 60 - floor * 80;
+      gameState.blocks.push(new Block(tower2X - 30, y, 20, 80, 'ice'));
+      gameState.blocks.push(new Block(tower2X + 30, y, 20, 80, 'ice'));
+      gameState.blocks.push(new Block(tower2X, y - 40, 80, 20, 'stone'));
+    }
+    
+    gameState.pigs.push(new Pig(tower2X, groundY - 120, 'normal'));
+    gameState.pigs.push(new Pig(tower2X, groundY - 200, 'normal'));
+    gameState.pigs.push(new Pig(tower2X, groundY - 280, 'king'));
+    
+    for (let i = 0; i < 5; i++) {
+      gameState.apples.push(new Apple(startX - 100 + i * 60, groundY - 300));
+    }
+  } else {
+    // Nivel 3 - Fortaleza masiva
+    const centerX = startX;
+    
+    // Base masiva
+    gameState.blocks.push(new Block(centerX, groundY - 20, 200, 30, 'stone'));
+    
+    // Torres laterales
+    [-80, 80].forEach(offset => {
+      for (let floor = 0; floor < 5; floor++) {
+        const y = groundY - 60 - floor * 70;
+        gameState.blocks.push(new Block(centerX + offset - 25, y, 20, 70, 'stone'));
+        gameState.blocks.push(new Block(centerX + offset + 25, y, 20, 70, 'stone'));
+        gameState.blocks.push(new Block(centerX + offset, y - 35, 70, 20, floor % 2 === 0 ? 'wood' : 'stone'));
+      }
+      gameState.pigs.push(new Pig(centerX + offset, groundY - 120, 'normal'));
+      gameState.pigs.push(new Pig(centerX + offset, groundY - 260, 'normal'));
+      gameState.pigs.push(new Pig(centerX + offset, groundY - 400, 'king'));
+    });
+    
+    // Torre central
+    for (let floor = 0; floor < 7; floor++) {
+      const y = groundY - 60 - floor * 60;
+      gameState.blocks.push(new Block(centerX - 20, y, 15, 60, 'wood'));
+      gameState.blocks.push(new Block(centerX + 20, y, 15, 60, 'wood'));
+      gameState.blocks.push(new Block(centerX, y - 30, 60, 15, 'ice'));
+    }
+    gameState.pigs.push(new Pig(centerX, groundY - 480, 'king'));
+    
+    for (let i = 0; i < 8; i++) {
+      gameState.apples.push(new Apple(centerX - 200 + i * 50, groundY - 350));
+    }
+  }
+  
+  spawnBird();
+}
+
+function spawnBird() {
+  const availableBirds = gameState.birds.filter(b => b.count > 0 && ['red','bomb','matilda','pink'].includes(b.type));
+  if (availableBirds.length === 0) return;
+  
+  const birdType = availableBirds[0];
+  gameState.currentBird = new Bird(180, canvas.height - 170, birdType.type);
+  birdType.count--;
+  updateCharacterSlots();
+}
+
+function checkCollisions() {
+  const bird = gameState.currentBird;
+  if (!bird || !bird.launched) return;
+  
+  gameState.blocks.forEach(block => {
+    if (block.health <= 0) return;
+    if (rectCircleColliding(block, bird)) {
+      block.hit(25);
+      const pushDir = bird.vel.normalize().mult(3);
+      block.vel = block.vel.add(pushDir);
+      block.angularVel = (bird.pos.x - block.pos.x) / block.width * 0.15;
+      bird.vel = bird.vel.mult(0.7);
+      createExplosion(bird.pos.x, bird.pos.y, block.type, 8);
+    }
+  });
+  
+  gameState.pigs.forEach(pig => {
+    if (circleColliding(bird, pig)) {
+      pig.hit(20);
+      bird.vel = bird.vel.mult(0.85);
+      createExplosion(pig.pos.x, pig.pos.y, 'pig', 12);
+    }
+  });
+  
+  gameState.apples.forEach(apple => {
+    if (circleColliding(bird, apple) && apple.attached) {
+      apple.attached = false;
+      apple.vel = bird.vel.mult(0.5);
+      createExplosion(apple.pos.x, apple.pos.y, 'apple', 8);
+      gameState.score += 100;
+      updateScore();
+    }
+  });
+}
+
+function rectCircleColliding(rect, circle) {
+  const distX = Math.abs(circle.pos.x - rect.pos.x);
+  const distY = Math.abs(circle.pos.y - rect.pos.y);
+  if (distX > (rect.width/2 + circle.radius)) return false;
+  if (distY > (rect.height/2 + circle.radius)) return false;
+  if (distX <= (rect.width/2)) return true;
+  if (distY <= (rect.height/2)) return true;
+  const dx = distX - rect.width/2;
+  const dy = distY - rect.height/2;
+  return (dx*dx + dy*dy <= (circle.radius*circle.radius));
+}
+
+function circleColliding(c1, c2) {
+  return c1.pos.dist(c2.pos) < c1.radius + c2.radius;
+}
+
+function checkVictory() {
+  if (gameState.pigs.length === 0) {
+    setTimeout(() => {
+      document.getElementById('finalScore').textContent = gameState.score;
+      document.getElementById('victoryModal').classList.remove('hidden');
+    }, 1500);
+  }
+}
+
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent = gameState.score;
+}
+
+function updateCharacterSlots() {
+  const container = document.getElementById('characterSlots');
+  container.innerHTML = '';
+  
+  const icons = {
+    'red': '',
+    'bomb': '',
+    'matilda': '🐔',
+    'pig': '',
+    'bubbles': '',
+    'pink': '🌸'
+  };
+  
+  const colors = {
+    'red': '#e63946',
+    'bomb': '#212529',
+    'matilda': '#f8f9fa',
+    'pig': '#52b788',
+    'bubbles': '#fb8500',
+    'pink': '#ff69b4'
+  };
+  
+  gameState.birds.forEach((bird, index) => {
+    const div = document.createElement('div');
+    div.className = `character-slot ${bird.selected ? 'active' : ''} ${bird.count === 0 ? 'opacity-50' : ''}`;
+    div.innerHTML = `
+      <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style="background: radial-gradient(circle at 30% 30%, ${colors[bird.type]}ee, ${colors[bird.type]}); border: 3px solid rgba(0,0,0,0.3); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,255,0.4);">
+        ${icons[bird.type]}
+      </div>
+      <div class="count-badge">${bird.count}</div>
+    `;
+    div.onclick = () => selectBird(index);
+    container.appendChild(div);
+  });
+}
+
+function selectBird(index) {
+  if (gameState.birds[index].count > 0) {
+    gameState.birds.forEach((b, i) => b.selected = i === index);
+    updateCharacterSlots();
+  }
+}
+
+canvas.addEventListener('mousedown', handleInputStart);
+canvas.addEventListener('mousemove', handleInputMove);
+canvas.addEventListener('mouseup', handleInputEnd);
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInputStart(e.touches[0]); });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleInputMove(e.touches[0]); });
+canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleInputEnd(); });
+
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX || e.pageX) - rect.left,
+    y: (e.clientY || e.pageY) - rect.top
+  };
+}
+
+function handleInputStart(e) {
+  if (gameState.paused || !gameState.currentBird || gameState.currentBird.launched) return;
+  const pos = getCanvasPos(e);
+  const bird = gameState.currentBird;
+  if (bird.pos.dist(new Vector(pos.x, pos.y)) < bird.radius * 3) {
+    gameState.isDragging = true;
+    gameState.dragStart = { x: bird.pos.x, y: bird.pos.y };
+    gameState.dragCurrent = pos;
+  }
+}
+
+function handleInputMove(e) {
+  if (!gameState.isDragging) return;
+  gameState.dragCurrent = getCanvasPos(e);
+}
+
+function handleInputEnd() {
+  if (!gameState.isDragging) return;
+  gameState.isDragging = false;
+  
+  const dx = gameState.dragStart.x - gameState.dragCurrent.x;
+  const dy = gameState.dragStart.y - gameState.dragCurrent.y;
+  const power = Math.min(Math.sqrt(dx*dx + dy*dy) * 0.15, 22);
+  const angle = Math.atan2(dy, dx);
+  
+  if (power > 3 && gameState.currentBird) {
+    gameState.currentBird.vel = new Vector(Math.cos(angle) * power, Math.sin(angle) * power);
+    gameState.currentBird.launched = true;
+    gameState.currentBird.angularVel = power * 0.02;
+    createExplosion(gameState.currentBird.pos.x, gameState.currentBird.pos.y + 20, 'dust', 10);
+  }
+}
+
+function drawBackground() {
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  skyGrad.addColorStop(0, '#87ceeb');
+  skyGrad.addColorStop(0.4, '#b0e0f0');
+  skyGrad.addColorStop(0.7, '#d4f0f8');
+  skyGrad.addColorStop(1, '#e8f8ff');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  const sunGrad = ctx.createRadialGradient(canvas.width * 0.8, 80, 0, canvas.width * 0.8, 80, 200);
+  sunGrad.addColorStop(0, 'rgba(255, 250, 200, 0.8)');
+  sunGrad.addColorStop(0.3, 'rgba(255, 240, 150, 0.4)');
+  sunGrad.addColorStop(1, 'rgba(255, 240, 150, 0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height * 0.5);
+  
+  gameState.clouds.forEach(cloud => {
+    cloud.x += cloud.speed;
+    if (cloud.x > canvas.width + 200) cloud.x = -200;
+    
+    ctx.fillStyle = `rgba(180, 200, 220, ${cloud.opacity * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(cloud.x, cloud.y + 10, cloud.size, 0, Math.PI * 2);
+    ctx.arc(cloud.x + cloud.size * 0.6, cloud.y + 5, cloud.size * 0.8, 0, Math.PI * 2);
+    ctx.arc(cloud.x + cloud.size * 1.2, cloud.y + 10, cloud.size * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity})`;
+    ctx.beginPath();
+    ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+    ctx.arc(cloud.x + cloud.size * 0.6, cloud.y - cloud.size * 0.2, cloud.size * 0.8, 0, Math.PI * 2);
+    ctx.arc(cloud.x + cloud.size * 1.2, cloud.y, cloud.size * 0.7, 0, Math.PI * 2);
+    ctx.arc(cloud.x - cloud.size * 0.5, cloud.y + cloud.size * 0.1, cloud.size * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity * 0.8})`;
+    ctx.beginPath();
+    ctx.arc(cloud.x - cloud.size * 0.2, cloud.y - cloud.size * 0.2, cloud.size * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  const mountainGrad1 = ctx.createLinearGradient(0, canvas.height - 200, 0, canvas.height - 100);
+  mountainGrad1.addColorStop(0, '#c9b896');
+  mountainGrad1.addColorStop(1, '#d4c4a6');
+  ctx.fillStyle = mountainGrad1;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height - 150);
+  for (let x = 0; x <= canvas.width; x += 30) {
+    const y = canvas.height - 150 - Math.sin(x * 0.008) * 40 - Math.sin(x * 0.015) * 25;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.lineTo(0, canvas.height);
+  ctx.closePath();
+  ctx.fill();
+  
+  const hillGrad = ctx.createLinearGradient(0, canvas.height - 130, 0, canvas.height - 80);
+  hillGrad.addColorStop(0, '#b8a882');
+  hillGrad.addColorStop(1, '#c9b896');
+  ctx.fillStyle = hillGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height - 120);
+  for (let x = 0; x <= canvas.width; x += 20) {
+    const y = canvas.height - 120 - Math.sin(x * 0.012 + 1) * 30 - Math.cos(x * 0.008) * 20;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.lineTo(0, canvas.height);
+  ctx.closePath();
+  ctx.fill();
+  
+  const fenceY = canvas.height - 110;
+  const fenceGrad = ctx.createLinearGradient(0, fenceY, 0, fenceY + 60);
+  fenceGrad.addColorStop(0, '#a0825a');
+  fenceGrad.addColorStop(0.5, '#8b6f47');
+  fenceGrad.addColorStop(1, '#6f4e37');
+  ctx.fillStyle = fenceGrad;
+  
+  for (let x = 0; x < canvas.width; x += 40) {
+    ctx.fillRect(x, fenceY, 35, 60);
+    
+    ctx.strokeStyle = 'rgba(111, 78, 55, 0.5)';
+    ctx.lineWidth = 1;
+    for (let i = 5; i < 35; i += 8) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, fenceY);
+      ctx.quadraticCurveTo(x + i + Math.sin(i) * 2, fenceY + 30, x + i, fenceY + 60);
+      ctx.stroke();
+    }
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(x, fenceY, 35, 5);
+    ctx.fillStyle = fenceGrad;
+  }
+  
+  ctx.fillStyle = '#a0825a';
+  ctx.fillRect(0, fenceY + 12, canvas.width, 10);
+  ctx.fillRect(0, fenceY + 42, canvas.width, 10);
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.fillRect(0, fenceY + 12, canvas.width, 3);
+  ctx.fillRect(0, fenceY + 42, canvas.width, 3);
+  
+  const groundY = canvas.height - 70;
+  const grassGrad = ctx.createLinearGradient(0, groundY - 15, 0, groundY + 10);
+  grassGrad.addColorStop(0, '#8bc34a');
+  grassGrad.addColorStop(0.3, '#7cb342');
+  grassGrad.addColorStop(0.7, '#689f38');
+  grassGrad.addColorStop(1, '#558b2f');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(0, groundY - 15, canvas.width, 25);
+  
+  for (let i = 0; i < canvas.width; i += 6) {
+    const h = 10 + Math.sin(i * 0.3 + Date.now() * 0.001) * 4;
+    const grassColor = i % 12 === 0 ? '#689f38' : '#7cb342';
+    ctx.strokeStyle = grassColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(i, groundY - 15);
+    ctx.quadraticCurveTo(i + 1, groundY - 15 - h/2, i + 2, groundY - 15 - h);
+    ctx.stroke();
+  }
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(0, groundY - 15, canvas.width, 5);
+  
+  const dirtGrad = ctx.createLinearGradient(0, groundY + 10, 0, canvas.height);
+  dirtGrad.addColorStop(0, '#8b6f47');
+  dirtGrad.addColorStop(0.3, '#6f4e37');
+  dirtGrad.addColorStop(0.7, '#5a3d2b');
+  dirtGrad.addColorStop(1, '#4a3520');
+  ctx.fillStyle = dirtGrad;
+  ctx.fillRect(0, groundY + 10, canvas.width, canvas.height - groundY - 10);
+  
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  for (let i = 0; i < 80; i++) {
+    const dx = (i * 73) % canvas.width;
+    const dy = groundY + 20 + (i * 37) % (canvas.height - groundY - 30);
+    const size = 2 + (i % 4);
+    ctx.beginPath();
+    ctx.arc(dx, dy, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.fillStyle = 'rgba(160, 140, 120, 0.4)';
+  for (let i = 0; i < 30; i++) {
+    const dx = (i * 97) % canvas.width;
+    const dy = groundY + 25 + (i * 53) % (canvas.height - groundY - 40);
+    ctx.beginPath();
+    ctx.ellipse(dx, dy, 4 + (i % 3), 3 + (i % 2), 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  for (let i = 0; i < canvas.width; i += 100) {
+    const fx = i + 30;
+    const fy = groundY - 18;
+    
+    ctx.strokeStyle = '#558b2f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy + 5);
+    ctx.lineTo(fx, fy);
+    ctx.stroke();
+    
+    ctx.fillStyle = '#ff6b9d';
+    for (let j = 0; j < 5; j++) {
+      const angle = (j / 5) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(fx + Math.cos(angle) * 3, fy + Math.sin(angle) * 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.fillStyle = '#ffd93d';
+    ctx.beginPath();
+    ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawSlingshot() {
+  const x = 180;
+  const groundY = canvas.height - 70;
+  const baseY = groundY - 20;
+  const forkY = baseY - 100;
+  
+  if (gameState.isDragging && gameState.currentBird) {
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x - 20, forkY);
+    ctx.lineTo(gameState.dragCurrent.x, gameState.dragCurrent.y);
+    ctx.stroke();
+    
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x - 20, forkY);
+    ctx.lineTo(gameState.dragCurrent.x, gameState.dragCurrent.y);
+    ctx.stroke();
+  }
+  
+  const forkGrad = ctx.createLinearGradient(x - 25, 0, x - 5, 0);
+  forkGrad.addColorStop(0, '#4e342e');
+  forkGrad.addColorStop(0.5, '#6d4c41');
+  forkGrad.addColorStop(1, '#5d4037');
+  ctx.fillStyle = forkGrad;
+  ctx.beginPath();
+  ctx.moveTo(x - 8, baseY);
+  ctx.lineTo(x - 25, forkY);
+  ctx.lineTo(x - 15, forkY - 5);
+  ctx.lineTo(x - 5, baseY);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x - 20 + i * 5, baseY - 10);
+    ctx.lineTo(x - 22 + i * 5, forkY + 10);
+    ctx.stroke();
+  }
+  
+  const poleGrad = ctx.createLinearGradient(x - 12, 0, x + 12, 0);
+  poleGrad.addColorStop(0, '#5d4037');
+  poleGrad.addColorStop(0.3, '#8d6e63');
+  poleGrad.addColorStop(0.7, '#6d4c41');
+  poleGrad.addColorStop(1, '#4e342e');
+  ctx.fillStyle = poleGrad;
+  ctx.fillRect(x - 12, forkY, 24, baseY - forkY);
+  
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x - 9 + i * 5, forkY);
+    ctx.quadraticCurveTo(x - 9 + i * 5 + Math.sin(i) * 2, (forkY + baseY) / 2, x - 9 + i * 5, baseY);
+    ctx.stroke();
+  }
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillRect(x - 12, forkY, 4, baseY - forkY);
+  
+  ctx.fillStyle = forkGrad;
+  ctx.beginPath();
+  ctx.moveTo(x + 8, baseY);
+  ctx.lineTo(x + 25, forkY);
+  ctx.lineTo(x + 15, forkY - 5);
+  ctx.lineTo(x + 5, baseY);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.strokeStyle = '#5d4037';
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 20, forkY);
+  if (gameState.isDragging && gameState.currentBird) {
+    ctx.lineTo(gameState.dragCurrent.x, gameState.dragCurrent.y);
+  } else if (gameState.currentBird) {
+    ctx.lineTo(x, forkY + 30);
+  }
+  ctx.stroke();
+  
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 20, forkY);
+  if (gameState.isDragging && gameState.currentBird) {
+    ctx.lineTo(gameState.dragCurrent.x, gameState.dragCurrent.y);
+  }
+  ctx.stroke();
+}
+
+function drawTrajectory() {
+  if (!gameState.isDragging || !gameState.currentBird) return;
+  
+  const dx = gameState.dragStart.x - gameState.dragCurrent.x;
+  const dy = gameState.dragStart.y - gameState.dragCurrent.y;
+  const power = Math.min(Math.sqrt(dx*dx + dy*dy) * 0.15, 22);
+  const angle = Math.atan2(dy, dx);
+  
+  let simX = gameState.currentBird.pos.x;
+  let simY = gameState.currentBird.pos.y;
+  let simVx = Math.cos(angle) * power;
+  let simVy = Math.sin(angle) * power;
+  
+  for (let i = 0; i < 30; i++) {
+    simX += simVx * 3;
+    simY += simVy * 3;
+    simVy += GRAVITY * 3;
+    
+    const alpha = 1 - (i / 30);
+    ctx.globalAlpha = alpha * 0.7;
+    
+    const dotGrad = ctx.createRadialGradient(simX, simY, 0, simX, simY, 6);
+    dotGrad.addColorStop(0, 'rgba(0,0,0,0.95)');
+    dotGrad.addColorStop(0.5, 'rgba(0,0,0,0.55)');
+    dotGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = dotGrad;
+    ctx.beginPath();
+    ctx.arc(simX, simY, 6 - i * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function gameLoop() {
+  if (!gameState.paused) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawBackground();
+    
+    gameState.apples.forEach(apple => {
+      apple.update();
+      apple.draw();
+    });
+    
+    gameState.blocks.forEach(block => {
+      block.update();
+      block.draw();
+    });
+    
+    gameState.pigs.forEach(pig => {
+      pig.update();
+      pig.draw();
+    });
+    
+    if (gameState.currentBird) {
+      gameState.currentBird.update();
+      gameState.currentBird.draw();
+    }
+    
+    gameState.particles = gameState.particles.filter(p => p.life > 0);
+    gameState.particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    
+    drawSlingshot();
+    drawTrajectory();
+    checkCollisions();
+    
+    if (gameState.currentBird && gameState.currentBird.launched && gameState.currentBird.stopped) {
+      setTimeout(spawnBird, 1200);
+      gameState.currentBird = null;
+    }
+  }
+  
+  requestAnimationFrame(gameLoop);
+}
+
+function togglePause() {
+  gameState.paused = !gameState.paused;
+  document.getElementById('pauseMenu').classList.toggle('hidden', !gameState.paused);
+}
+
+function resetLevel() {
+  gameState.score = 0;
+  updateScore();
+  gameState.birds.forEach(b => {
+    if (b.type === 'red') b.count = 10;
+    else if (b.type === 'bomb') b.count = 2;
+    else if (b.type === 'matilda') b.count = 3;
+    else if (b.type === 'pink') b.count = 6;
+  });
+  initLevel(gameState.level);
+  document.getElementById('pauseMenu').classList.add('hidden');
+}
+
+function nextLevel() {
+  gameState.level = gameState.level >= 3 ? 1 : gameState.level + 1;
+  gameState.score = 0;
+  updateScore();
+  gameState.birds.forEach(b => {
+    if (b.type === 'red') b.count = 10;
+    else if (b.type === 'bomb') b.count = 2;
+    else if (b.type === 'matilda') b.count = 3;
+    else if (b.type === 'pink') b.count = 6;
+  });
+  initLevel(gameState.level);
+  document.getElementById('victoryModal').classList.add('hidden');
+}
+
+initClouds();
+updateCharacterSlots();
+initLevel(1);
+gameLoop();
+</script>
+</body>
+</html>
