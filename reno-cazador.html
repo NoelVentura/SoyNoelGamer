@@ -580,17 +580,7 @@
     #moveKeys { display: none !important; }
     .desktop-only-hint { display: none !important; }
     #upgradePanel {
-      display: block !important;
-      position: fixed !important;
-      top: 10.5rem !important;
-      left: max(8px, env(safe-area-inset-left)) !important;
-      right: auto !important;
-      bottom: auto !important;
-      font-size: 10px !important;
-      min-width: 110px !important;
-      padding: 6px 8px !important;
-      transform: none !important;
-      transform-origin: none !important;
+      display: none !important;
     }
 
     /* ── PUNTAJE: arriba izquierda, compacto ── */
@@ -2778,9 +2768,14 @@
     if (upgradeShovelEl) upgradeShovelEl.textContent = '🪏 Nv ' + toolUpgrades.shovel.level;
     if (upgradeArmorEl) upgradeArmorEl.textContent = '🛡️ Refuerzo ' + armorForgeLevel;
     if (upgradePanel) {
-      const any = weaponUpgrades.shotgun.level + weaponUpgrades.axe.level + weaponUpgrades.minigun.level +
-        toolUpgrades.pickaxe.level + toolUpgrades.shovel.level + armorForgeLevel > 0;
-      upgradePanel.classList.toggle('hidden', !any);
+      if (isTouchDevice) {
+        upgradePanel.classList.add('hidden');
+        upgradePanel.style.display = 'none';
+      } else {
+        const any = weaponUpgrades.shotgun.level + weaponUpgrades.axe.level + weaponUpgrades.minigun.level +
+          toolUpgrades.pickaxe.level + toolUpgrades.shovel.level + armorForgeLevel > 0;
+        upgradePanel.classList.toggle('hidden', !any);
+      }
     }
   }
 
