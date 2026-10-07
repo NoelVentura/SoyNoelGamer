@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+as la <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -664,7 +664,7 @@
         }
         #panel-action .product-games-row {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1.5rem;
             width: 100%;
         }
@@ -706,6 +706,11 @@
         }
         .product-showcase--reno .product-showcase-bg {
             pointer-events: auto;
+        }
+        @media (max-width: 1000px) {
+            #panel-action .product-games-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
         @media (max-width: 768px) {
             #panel-action .product-games-row {
@@ -1397,7 +1402,7 @@
         </div>
         <div class="video-container">
             <video id="heroIntroVideo" controls muted playsinline preload="metadata" class="video-gamer">
-                <source src="./public/video/video1.mp4" type="video/mp4">
+                <source src="./public/video/cafe.mp4?v=20260723b" type="video/mp4">
                 Tu navegador no soporta el elemento de video.
             </video>
         </div>
@@ -1519,6 +1524,19 @@
                             <p>Gameplay del minijuego: apunta, reacciona rápido y consigue la mejor puntuación</p>
                         </div>
                     </article>
+                    <article class="youtube-row reveal">
+                        <div class="youtube-row-media">
+                            <div class="youtube-embed">
+                                <video controls muted playsinline preload="none" title="SoyNoel Gamer intro" data-src="./public/video/video1.mp4">
+                                    Tu navegador no soporta el elemento de video.
+                                </video>
+                            </div>
+                        </div>
+                        <div class="youtube-row-info">
+                            <h4>SoyNoel Gamer</h4>
+                            <p>Video intro de la temporada educativa: aprende matemáticas con modo gamer, retos y niveles progresivos.</p>
+                        </div>
+                    </article>
                 </div>
             </div>
 
@@ -1626,20 +1644,30 @@
                         </video>
                         <div class="product-showcase-content">
                             <h3>Angry Birds Clone</h3>
-                            <p>Juego completo de física con estructuras destructibles...</p>
+                            <p>Juego completo de física con estructuras destructibles — lanza pájaros, derriba torres y elimina a los cerdos.</p>
                             <ul class="product-list">
                                 <li>Física realista</li>
-                                <li>3 personajes únicos</li>
+                                <li>Varios personajes únicos</li>
                                 <li>Múltiples niveles</li>
                                 <li>Diseño responsive</li>
                             </ul>
-                            <a href="./rompe-bloques.html" class="btn btn-primary" style="margin-top: 1.5rem; background: linear-gradient(to right, #fb923c, #ef4444); border: none;">🎮 Jugar Ahora</a>
+                            <a href="./rompe-bloques.html" class="btn btn-primary" style="margin-top: 1.5rem; background: linear-gradient(to right, #fb923c, #ef4444); border: none;">🎮 Jugar Angry Birds</a>
                         </div>
                     </div>
-                </div>
-                <div class="product-side">
-                    <div class="mini-card"><h4>Combate frenético</h4><p>Reflejos y habilidad puestos a prueba en cada encuentro.</p></div>
-                    <div class="mini-card"><h4>Modos multijugador</h4><p>Forma equipo o compite contra jugadores de todo el mundo.</p></div>
+                    <div class="product-showcase product-showcase--reno">
+                        <video class="product-showcase-bg" loop playsinline controls preload="metadata" src="./public/video/bros.mp4"></video>
+                        <div class="product-showcase-content">
+                            <h3>Juego de Mario Bros</h3>
+                            <p>Plataformas clásicas — corre por el nivel, salta los huecos y pisa a los enemigos.</p>
+                            <ul class="product-list">
+                                <li>Mundo de plataformas</li>
+                                <li>Corre, salta y agáchate</li>
+                                <li>Pantalla completa</li>
+                                <li>Botones para celular y tableta</li>
+                            </ul>
+                            <a href="./Mario%20Bros/mario/index.html" class="btn btn-primary" style="margin-top: 1.5rem; background: linear-gradient(to right, #e52521, #049cd8); border: none;">🎮 Jugar Mario Bros</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1983,6 +2011,8 @@
                     <h4>Juegos</h4>
                     <ul>
                         <li><a href="reno-cazador.html">Reno Cazador</a></li>
+                        <li><a href="rompe-bloques.html">Angry Birds Clone</a></li>
+                        <li><a href="Mario%20Bros/mario/index.html">Juego de Mario Bros</a></li>
                         <li><a href="juegos.html#rpg">RPG Games</a></li>
                         <li><a href="juegos.html#strategy">Strategy Games</a></li>
                         <li><a href="juegos.html#sports">Sports Games</a></li>

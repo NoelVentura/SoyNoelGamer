@@ -1,0 +1,281 @@
+::selection {
+    background: none;
+}
+
+@font-face {
+    font-family: 'angry-birds';
+    src: url('../data/font/angrybirds-regular.ttf') format('truetype');
+}
+
+body {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#play-home {
+    position: absolute;
+    border: none;
+    background: none;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.8s ease;
+}
+
+#play-home:hover {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+#play-home img {
+    width: 45%;
+    height: auto;
+}
+
+#jugador-nombre {
+    font-family: 'angry-birds', 'Segoe UI', sans-serif;
+    color: white;
+    font-size: 22px;
+    position: absolute;
+    top: 8px;
+    left: 16px;
+    pointer-events: none;
+    text-shadow: 0 2px 0 #120E0A;
+    z-index: 2;
+}
+
+#score1,
+#score2,
+#score3,
+#score4 {
+    font-family: 'angry-birds', 'Segoe UI', sans-serif;
+    color: white;
+
+    font-size: 32px;
+    position: absolute;
+    top: 5vh;
+    right: 5vw;
+    cursor: default;
+}
+
+#stage {
+    position: absolute;
+    transition: all 0.8s ease;
+}
+
+#stage button {
+    font-family: 'angry-birds', 'Segoe UI', sans-serif;
+    background-color: #F4BA4C;
+    color: white;
+    font-size: 80px;
+    padding: 20px 44px 20px 44px;
+    border-radius: 16px;
+    border: 4px solid white;
+    cursor: pointer;
+    transition: all 0.8s ease;
+}
+
+#stage-wrapper {
+    transition: all 0.8s ease;
+    margin: 20px;
+}
+
+#stage-wrapper:hover {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+#stage-wrapper {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 16px;
+}
+
+#stage1-star,
+#stage2-star,
+#stage3-star,
+#stage4-star {
+    font-family: 'angry-birds', 'Segoe UI', sans-serif;
+    color: white;
+    padding: 6px;
+    text-align: center;
+    font-size: 24px;
+}
+
+#stage1 {
+    top: 35vh;
+    left: 20vw;
+}
+
+#stage2 {
+    top: 35vh;
+    left: 39vw;
+}
+
+#stage3 {
+    top: 35vh;
+    left: 51vw;
+}
+
+#stage4 {
+    top: 35vh;
+    left: 63vw;
+}
+
+#pause-btn {
+    position: absolute;
+    top: 4vh;
+    left: 2vw;
+    border: none;
+    background: none;
+    transition: all 0.8s ease;
+}
+
+#play-btn {
+    position: absolute;
+    top: 4vh;
+    left: 2vw;
+    border: none;
+    background: none;
+    transition: all 0.8s ease;
+}
+
+#restart-btn {
+    position: absolute;
+    top: 4vh;
+    left: 6vw;
+    border: none;
+    background: none;
+    transition: all 0.8s ease;
+}
+
+#home-btn {
+    position: absolute;
+    top: 4vh;
+    left: 10vw;
+    border: none;
+    background: none;
+    transition: all 0.8s ease;
+}
+
+#stage-btn {
+    position: absolute;
+    top: 4vh;
+    left: 14vw;
+    border: none;
+    background: none;
+    transition: all 0.8s ease;
+}
+
+#pause-btn:hover,
+#play-btn:hover,
+#restart-btn:hover,
+#home-btn:hover,
+#stage-btn:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+#pause-img {
+    position: absolute;
+    top: 4px;
+    left: 0vw;
+    border: none;
+    background: none;
+    padding: 125px 300px;
+}
+
+#rb-wrapper {
+    position: absolute;
+    top: 20vh;
+    left: 2vw;
+}
+
+#rb-stage1,
+#rb-stage2,
+#rb-stage3,
+#rb-stage4 {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 60px;
+    height: auto;
+    left: 4px;
+    justify-content: flex-start;
+}
+
+#rb-wrapper img {
+    width: 80%;
+    height: auto;
+    margin-bottom: 8px;
+}
+
+#now-bird-stage1,
+#now-bird-stage2,
+#now-bird-stage3,
+#now-bird-stage4 {
+    font-family: 'angry-birds', 'Segoe UI', sans-serif;
+    color: white;
+    padding-left: 10px;
+    padding-bottom: 6px;
+}
+
+#transparent {
+    position: absolute;
+    width: 800px;
+    height: 580px;
+    top: 3vh;
+    right: 1vw;
+    background: none;
+    border: none;
+}
+
+#fondo-cielo {
+    position: absolute;
+    inset: 0;
+    background: lightblue url("../Game Angry Bird/angry-birds/imagen/fondo 1.jpg") center / cover no-repeat;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#fondo-cafe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+body.jugando #fondo-cafe {
+    display: none;
+}
+
+body > canvas {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
+#play-home,
+#stage,
+#pause-btn,
+#pause-img,
+#play-btn,
+#restart-btn,
+#home-btn,
+#stage-btn,
+#rb-wrapper,
+#transparent,
+#score1,
+#score2,
+#score3,
+#score4,
+#jugador-nombre {
+    z-index: 3;
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- The actual resolution of the NES is 256x240.
+         Ideally, we draw in this size and scale appropriately.-->
+    <title>Super Mario Bros</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="css/game.css">
+  </head>
+  <body>
+    <script type="text/javascript" src="js/util.js"></script>
+    <script type="text/javascript" src="js/input.js"></script>
+    <script type="text/javascript" src="js/resources.js"></script>
+    <script type="text/javascript" src="js/sprite.js"></script>
+    <script type="text/javascript" src="js/entity.js"></script>
+    <script type="text/javascript" src="js/pipe.js"></script>
+    <script type="text/javascript" src="js/mushroom.js"></script>
+    <script type="text/javascript" src="js/fireflower.js"></script>
+    <script type="text/javascript" src="js/star.js"></script>
+    <script type="text/javascript" src="js/fireball.js"></script>
+    <script type="text/javascript" src="js/coin.js"></script>
+    <script type="text/javascript" src="js/bcoin.js"></script>
+    <script type="text/javascript" src="js/goomba.js"></script>
+    <script type="text/javascript" src="js/koopa.js"></script>
+    <script type="text/javascript" src="js/floor.js"></script>
+    <script type="text/javascript" src="js/block.js"></script>
+    <script type="text/javascript" src="js/rubble.js"></script>
+    <script type="text/javascript" src="js/prop.js"></script>
+    <script type="text/javascript" src="js/player.js"></script>
+    <script type="text/javascript" src="js/flag.js"></script>
+    <script type="text/javascript" src="js/levels/level.js"></script>
+    <script type="text/javascript" src="js/levels/11.js"></script>
+    <script type="text/javascript" src="js/levels/11tunnel.js"></script>
+    <script type="text/javascript" src="js/game.js"></script>
+    <div class="touch-controls" id="touch-controls">
+      <div class="touch-pad">
+        <button type="button" class="btn-arrow btn-left" data-key="LEFT" aria-label="Izquierda"></button>
+        <button type="button" class="btn-arrow btn-right" data-key="RIGHT" aria-label="Derecha"></button>
+      </div>
+      <div class="touch-actions">
+        <button type="button" class="btn-run" data-key="RUN" aria-label="Correr">Correr</button>
+        <button type="button" class="btn-jump" data-key="JUMP" aria-label="Saltar"></button>
+      </div>
+    </div>
+  </body>
+</html>

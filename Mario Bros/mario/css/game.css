@@ -1,0 +1,223 @@
+html, body, ul, li {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  background-color: #7974FF;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+p {
+  text-align: center;
+}
+
+body {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: #7974FF;
+}
+
+html {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: #7974FF;
+}
+
+.touch-controls {
+  display: flex;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding:
+    12px
+    calc(16px + env(safe-area-inset-right))
+    calc(14px + env(safe-area-inset-bottom))
+    calc(16px + env(safe-area-inset-left));
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body.touch-play .touch-controls {
+  display: flex;
+}
+
+.touch-pad,
+.touch-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.touch-controls button {
+  pointer-events: auto;
+  touch-action: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-arrow {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  filter:
+    drop-shadow(0 0 6px #7af6ff)
+    drop-shadow(0 0 12px #00b7ff)
+    drop-shadow(0 0 22px rgba(0, 110, 255, 0.95));
+}
+
+.btn-arrow::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 18px;
+  z-index: 1;
+  width: 62px;
+  height: 48px;
+  background: #fff;
+  clip-path: polygon(0 38%, 42% 38%, 42% 0, 100% 50%, 42% 100%, 42% 62%, 0 62%);
+}
+
+.btn-arrow::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 14px;
+  z-index: 0;
+  width: 72px;
+  height: 56px;
+  background: #00c8ff;
+  border-radius: 46%;
+  filter: blur(8px);
+  opacity: 0.95;
+}
+
+.btn-left::before {
+  transform: scaleX(-1);
+}
+
+.btn-arrow.is-down {
+  filter:
+    drop-shadow(0 0 8px #bff8ff)
+    drop-shadow(0 0 18px #00d4ff);
+}
+
+.btn-arrow.is-down::before {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.touch-controls .btn-run {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.95);
+  background: #2f6bff;
+  color: #fff;
+  font: 700 14px/1 sans-serif;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), 0 0 12px #3ecbff, 0 0 26px rgba(0, 140, 255, 0.85);
+}
+
+.touch-controls .btn-run.is-down {
+  background: #9ec0ff;
+  color: #1a1a1a;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 0 16px #3ecbff;
+}
+
+.touch-controls .btn-jump {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.95);
+  background: #e52521;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), 0 0 12px #3ecbff, 0 0 26px rgba(0, 140, 255, 0.85);
+}
+
+.touch-controls .btn-jump.is-down {
+  background: #ff8a86;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 0 16px #3ecbff;
+}
+
+@media (max-width: 480px) {
+  .btn-arrow {
+    width: 72px;
+    height: 72px;
+  }
+
+  .btn-arrow::before {
+    left: 4px;
+    top: 16px;
+    width: 54px;
+    height: 40px;
+  }
+
+  .btn-arrow::after {
+    left: 0;
+    top: 12px;
+    width: 62px;
+    height: 48px;
+  }
+
+  .touch-controls .btn-run {
+    width: 72px;
+    height: 72px;
+    font-size: 12px;
+  }
+
+  .touch-controls .btn-jump {
+    width: 92px;
+    height: 92px;
+  }
+}
+
+@media (max-height: 480px) {
+  .btn-arrow {
+    width: 60px;
+    height: 60px;
+  }
+
+  .btn-arrow::before {
+    left: 2px;
+    top: 12px;
+    width: 46px;
+    height: 34px;
+  }
+
+  .btn-arrow::after {
+    left: 0;
+    top: 8px;
+    width: 52px;
+    height: 42px;
+  }
+
+  .touch-controls .btn-run {
+    width: 60px;
+    height: 60px;
+    font-size: 11px;
+  }
+
+  .touch-controls .btn-jump {
+    width: 74px;
+    height: 74px;
+  }
+}
